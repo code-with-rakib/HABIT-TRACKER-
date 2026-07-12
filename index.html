@@ -22,8 +22,8 @@
 
     /* Custom scrollbars */
     .custom-scrollbar::-webkit-scrollbar {
-      height: 8px;
-      width: 8px;
+      height: 6px;
+      width: 6px;
     }
 
     .custom-scrollbar::-webkit-scrollbar-track {
@@ -193,7 +193,6 @@
     </div>
   </div>
 
-
   <!-- SECURE JSON LOGIN PAGE -->
   <div id="login-overlay"
     class="fixed inset-0 bg-zinc-950 backdrop-blur-md z-50 flex items-center justify-center transition-all duration-500">
@@ -235,9 +234,6 @@
           </div>
         </div>
 
-        <!-- Credential Hints Info -->
-
-
         <button type="submit"
           class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-black font-extrabold uppercase rounded-xl tracking-wider transition-all duration-150 transform active:scale-95 text-xs shadow-lg shadow-amber-500/10">
           Authenticate Session <i class="fa-solid fa-arrow-right ml-1"></i>
@@ -246,8 +242,7 @@
     </div>
   </div>
 
-
-  <!-- MAIN WORKSPACE APP (hidden initially) -->
+  <!-- MAIN WORKSPACE APP -->
   <div id="main-app" class="hidden max-w-[1680px] mx-auto p-2 sm:p-4 space-y-4">
 
     <!-- Premium Action Header -->
@@ -364,7 +359,7 @@
         </div>
       </div>
 
-      <!-- Widget 2: Study / Focus Timer (Pomodoro + Stopwatch) -->
+      <!-- Widget 2: Study / Focus Timer -->
       <div
         class="xl:col-span-3 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col justify-between min-h-[300px]">
         <div
@@ -414,80 +409,130 @@
         </div>
       </div>
 
-      <!-- Widget 3: Combined Daily/Weekly Progress Charts -->
+      <!-- Widget 3: Today's Focus Action Checklist -->
       <div
-        class="xl:col-span-4 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col justify-between min-h-[300px]">
+        class="xl:col-span-3 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col justify-between min-h-[300px]">
+        <div
+          class="bg-black text-white py-2.5 px-4 flex justify-between items-center font-bold text-xs tracking-wider uppercase">
+          <span><i class="fa-solid fa-list-check text-amber-400 mr-1.5" id="checklist-accent-icon"></i> Day
+            Checklist</span>
+          <!-- Active Day Selector Navigation Controls -->
+          <div class="flex items-center space-x-2">
+            <button onclick="changeActiveDay(-1)" class="hover:text-amber-400 transition-colors text-xs px-1"><i
+                class="fa-solid fa-chevron-left"></i></button>
+            <span class="text-[10px] font-mono bg-zinc-800 px-2 py-0.5 rounded text-white" id="active-day-display">Day
+              12</span>
+            <button onclick="changeActiveDay(1)" class="hover:text-amber-400 transition-colors text-xs px-1"><i
+                class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </div>
+
+        <!-- Daily Stats with Beautiful Transparent Left Indicator -->
+        <div class="px-4 pt-3 pb-2 grid grid-cols-3 gap-2 border-b border-slate-100 bg-slate-50/50">
+          <div class="border border-slate-200/80 rounded-lg overflow-hidden bg-white shadow-xs">
+            <div class="bg-slate-100/50 text-slate-500 text-[8px] font-extrabold text-center uppercase py-0.5">Day Goal
+            </div>
+            <div class="text-center font-black text-xs py-1 text-slate-800 font-mono" id="day-stat-goal">0</div>
+          </div>
+          <div class="border border-slate-200/80 rounded-lg overflow-hidden bg-white shadow-xs">
+            <div class="bg-slate-100/50 text-slate-500 text-[8px] font-extrabold text-center uppercase py-0.5">Day Done
+            </div>
+            <div class="text-center font-black text-xs py-1 text-emerald-600 font-mono" id="day-stat-completed">0</div>
+          </div>
+          <!-- Clean Transparent Day Left Indicator -->
+          <div class="border border-slate-200/60 rounded-lg overflow-hidden bg-transparent">
+            <div class="bg-transparent text-slate-400 text-[8px] font-extrabold text-center uppercase py-0.5">Day Left
+            </div>
+            <div class="text-center font-black text-xs py-1 text-slate-400 bg-transparent font-mono" id="day-stat-left">
+              0</div>
+          </div>
+        </div>
+
+        <!-- Dynamic Action Day Checklist Container -->
+        <div class="p-3 flex-1 overflow-y-auto max-h-[170px] custom-scrollbar space-y-1.5 bg-white"
+          id="daily-checklist-container">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <div
+          class="px-4 py-2 bg-slate-50 border-t border-slate-100 text-[10px] text-slate-400 font-semibold text-center uppercase">
+          Check off habits for the active day!
+        </div>
+      </div>
+
+      <!-- Widget 4: Monthly Progress Charts & Donut Widget -->
+      <div
+        class="xl:col-span-3 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col justify-between min-h-[300px]">
         <div
           class="bg-slate-100 border-b border-slate-200 py-2.5 text-center font-bold text-xs tracking-wider text-slate-700 uppercase">
-          Daily Progress Charts
+          Analytics & Monthly Stats
         </div>
-        <div class="p-4 flex-1 flex flex-col justify-between">
-          <div class="flex h-36 items-end relative border-b border-slate-200 pb-1">
-            <!-- Y Axis Indicators -->
+
+        <div class="p-3 flex-1 flex flex-col justify-between space-y-2">
+          <!-- Daily Progress Sparkline Chart -->
+          <div class="flex h-16 items-end relative border-b border-slate-200 pb-1">
             <div
-              class="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-[9px] text-slate-400 pr-1 select-none pointer-events-none z-10 font-mono">
+              class="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-[8px] text-slate-400 pr-1 select-none pointer-events-none z-10 font-mono">
               <span>100%</span>
               <span>50%</span>
               <span>0%</span>
             </div>
-            <!-- Bar chart elements container -->
-            <div class="w-full h-full flex justify-between items-end pl-8 gap-[1.5px]" id="daily-progress-bars">
-              <!-- Dynamic Bars render here -->
+            <!-- Bar Chart Elements Container -->
+            <div class="w-full h-full flex justify-between items-end pl-6 gap-[1.5px]" id="daily-progress-bars">
+              <!-- Rendered Dynamically -->
             </div>
           </div>
-          <!-- Chart X-axis labels (days) -->
+          <!-- Chart X-axis Day labels -->
           <div
-            class="w-full flex justify-between pl-8 text-[8px] font-semibold text-slate-500 mt-1.5 select-none font-mono"
+            class="w-full flex justify-between pl-6 text-[7px] font-semibold text-slate-500 mt-0.5 select-none font-mono"
             id="daily-progress-labels">
-            <!-- Day labels render here -->
+            <!-- Rendered Dynamically -->
+          </div>
+
+          <!-- Statistics & Donut Summary Row -->
+          <div class="flex items-center justify-between gap-3 pt-1.5">
+            <div class="flex-1 grid grid-cols-1 gap-1">
+              <!-- Goal Box -->
+              <div class="border border-slate-200/80 rounded-lg overflow-hidden bg-white shadow-xs">
+                <div class="bg-slate-50 text-slate-500 text-[8px] font-extrabold text-center uppercase py-0.5">Month
+                  Goal</div>
+                <div class="text-center font-black text-xs py-0.5 text-slate-800 font-mono" id="stat-goal">0</div>
+              </div>
+              <!-- Completed Box -->
+              <div class="border border-slate-200/80 rounded-lg overflow-hidden bg-white shadow-xs">
+                <div class="bg-slate-50 text-slate-500 text-[8px] font-extrabold text-center uppercase py-0.5">Month
+                  Done</div>
+                <div class="text-center font-black text-xs py-0.5 text-emerald-600 font-mono" id="stat-completed">0
+                </div>
+              </div>
+              <!-- Premium Transparent styled Left Box -->
+              <div class="border border-slate-200/60 rounded-lg overflow-hidden bg-transparent">
+                <div class="bg-transparent text-slate-400 text-[8px] font-extrabold text-center uppercase py-0.5">Month
+                  Left</div>
+                <div class="text-center font-black text-xs py-0.5 text-slate-400 bg-transparent font-mono"
+                  id="stat-left">0</div>
+              </div>
+            </div>
+
+            <!-- SVG Donut Chart container -->
+            <div class="relative w-20 h-20 flex items-center justify-center">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f1f5f9" stroke-width="12"></circle>
+                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#000000" stroke-width="12"
+                  stroke-dasharray="251.2" stroke-dashoffset="100" id="donut-progress-stroke" class="theme-transition">
+                </circle>
+              </svg>
+              <div class="absolute inset-0 flex flex-col justify-center items-center pointer-events-none">
+                <span class="text-[8px] text-slate-400 font-bold" id="donut-left-pct">0%</span>
+                <span class="text-[10px] text-black font-extrabold" id="donut-completed-pct">0%</span>
+              </div>
+            </div>
           </div>
         </div>
+
         <div
-          class="px-4 py-2 border-t border-slate-100 bg-slate-50 text-[10px] text-slate-400 font-semibold text-center uppercase tracking-wider">
-          Relative percentage of completed habits per day
-        </div>
-      </div>
-
-      <!-- Widget 4: Overall Stats & Interactive Donut Chart -->
-      <div class="xl:col-span-2 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
-        <div
-          class="bg-slate-100 border-b border-slate-200 py-2.5 text-center font-bold text-xs tracking-wider text-slate-700 uppercase">
-          Overall Stats
-        </div>
-        <div class="p-4 flex-1 flex flex-col justify-between items-center gap-4">
-
-          <!-- Stats Grid -->
-          <div class="w-full grid grid-cols-3 xl:grid-cols-1 gap-2">
-            <!-- Goal Box -->
-            <div class="border border-slate-200 rounded-lg overflow-hidden shadow-sm">
-              <div class="bg-slate-50 text-slate-500 text-[9px] font-extrabold text-center uppercase py-1">Goal</div>
-              <div class="text-center font-black text-sm py-1 bg-white text-slate-800" id="stat-goal">0</div>
-            </div>
-            <!-- Completed Box -->
-            <div class="border border-slate-200 rounded-lg overflow-hidden shadow-sm">
-              <div class="bg-slate-50 text-slate-500 text-[9px] font-extrabold text-center uppercase py-1">Done</div>
-              <div class="text-center font-black text-sm py-1 bg-white text-emerald-600" id="stat-completed">0</div>
-            </div>
-            <!-- Left Box -->
-            <div class="border border-slate-200 rounded-lg overflow-hidden shadow-sm">
-              <div class="bg-slate-50 text-slate-500 text-[9px] font-extrabold text-center uppercase py-1">Left</div>
-              <div class="text-center font-black text-sm py-1 bg-white text-slate-400" id="stat-left">0</div>
-            </div>
-          </div>
-
-          <!-- Custom SVG Donut Chart -->
-          <div class="relative w-28 h-28 flex items-center justify-center">
-            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f1f5f9" stroke-width="12"></circle>
-              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#000000" stroke-width="12"
-                stroke-dasharray="251.2" stroke-dashoffset="100" id="donut-progress-stroke" class="theme-transition">
-              </circle>
-            </svg>
-            <div class="absolute inset-0 flex flex-col justify-center items-center pointer-events-none">
-              <span class="text-[9px] text-slate-400 font-bold" id="donut-left-pct">0%</span>
-              <span class="text-xs text-black font-extrabold" id="donut-completed-pct">0%</span>
-            </div>
-          </div>
+          class="px-3 py-1.5 bg-slate-50 border-t border-slate-100 text-[9px] text-slate-400 font-semibold text-center uppercase tracking-wider">
+          Completed Habits relative Percentage
         </div>
       </div>
 
@@ -632,6 +677,117 @@
       </div>
     </div>
 
+    <!-- NEW SECTION: Weekly To-Do Planner (Completely Separate Logic & Visuals) -->
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-4">
+
+      <!-- Left Panel: Weekly Day Planner Interface -->
+      <div
+        class="xl:col-span-8 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col justify-between">
+        <div>
+          <div
+            class="bg-black text-white py-3 px-4 flex justify-between items-center font-bold text-xs tracking-wider uppercase">
+            <span><i class="fa-solid fa-calendar-check text-amber-400 mr-1.5" id="todo-accent-icon"></i> Dedicated
+              Weekly To-Do Planner</span>
+            <span class="text-slate-400 text-[10px]">Plan tasks for specific days of the week</span>
+          </div>
+
+          <!-- Horizontal 7 Days Switcher Navigation -->
+          <div class="bg-slate-50 border-b border-slate-200 p-2 flex flex-wrap gap-1.5">
+            <button onclick="setActiveTodoDay('Monday')" id="todo-tab-Monday"
+              class="todo-tab-btn flex-1 py-2 px-3 text-xs font-bold rounded-lg transition duration-150 uppercase tracking-wider text-center"></button>
+            <button onclick="setActiveTodoDay('Tuesday')" id="todo-tab-Tuesday"
+              class="todo-tab-btn flex-1 py-2 px-3 text-xs font-bold rounded-lg transition duration-150 uppercase tracking-wider text-center"></button>
+            <button onclick="setActiveTodoDay('Wednesday')" id="todo-tab-Wednesday"
+              class="todo-tab-btn flex-1 py-2 px-3 text-xs font-bold rounded-lg transition duration-150 uppercase tracking-wider text-center"></button>
+            <button onclick="setActiveTodoDay('Thursday')" id="todo-tab-Thursday"
+              class="todo-tab-btn flex-1 py-2 px-3 text-xs font-bold rounded-lg transition duration-150 uppercase tracking-wider text-center"></button>
+            <button onclick="setActiveTodoDay('Friday')" id="todo-tab-Friday"
+              class="todo-tab-btn flex-1 py-2 px-3 text-xs font-bold rounded-lg transition duration-150 uppercase tracking-wider text-center"></button>
+            <button onclick="setActiveTodoDay('Saturday')" id="todo-tab-Saturday"
+              class="todo-tab-btn flex-1 py-2 px-3 text-xs font-bold rounded-lg transition duration-150 uppercase tracking-wider text-center"></button>
+            <button onclick="setActiveTodoDay('Sunday')" id="todo-tab-Sunday"
+              class="todo-tab-btn flex-1 py-2 px-3 text-xs font-bold rounded-lg transition duration-150 uppercase tracking-wider text-center"></button>
+          </div>
+
+          <!-- Task Management Console inside Active Day -->
+          <div class="p-4 space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-black text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+                  Tasks for <span id="todo-active-day-title" class="text-amber-500">Monday</span>
+                </h3>
+                <p class="text-[10px] text-slate-400 font-semibold uppercase">Manage distinct milestones for this day
+                </p>
+              </div>
+
+              <!-- Dedicated Progress Pill -->
+              <div class="flex items-center space-x-2">
+                <span
+                  class="text-xs font-extrabold font-mono px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-lg text-slate-800"
+                  id="todo-day-progress-pct">0% Complete</span>
+              </div>
+            </div>
+
+            <!-- Single Day Progress Bar -->
+            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200/50">
+              <div id="todo-day-progress-bar-fill" class="bg-amber-500 h-full transition-all duration-300 w-0"></div>
+            </div>
+
+            <!-- Input Form to quickly add To-Do's -->
+            <div class="flex gap-2">
+              <input type="text" id="input-new-todo-text"
+                placeholder="Add a specific task for this day (e.g. Clean the kitchen)..."
+                class="flex-1 px-3.5 py-2 border border-slate-200 rounded-xl text-sm font-semibold outline-none focus:border-amber-400 focus:bg-slate-50 transition"
+                onkeypress="handleTodoInputKeyPress(event)">
+              <button onclick="submitNewTodo()"
+                class="bg-black hover:bg-slate-850 text-white px-5 py-2 rounded-xl text-xs font-bold uppercase transition">Add
+                Task</button>
+            </div>
+
+            <!-- Dynamic To-Do List Container for selected Day -->
+            <div id="todo-list-items-container"
+              class="space-y-2 max-h-[160px] overflow-y-auto custom-scrollbar pr-1 pt-1">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="px-4 py-2.5 bg-slate-50 border-t border-slate-200 text-[10px] text-slate-400 font-semibold uppercase tracking-wider text-center">
+          💡 Tasks added here are unique weekly events, independent from daily recurring habits.
+        </div>
+      </div>
+
+      <!-- Right Panel: Weekly Planner Analytics & Performance Overview -->
+      <div
+        class="xl:col-span-4 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col justify-between">
+        <div>
+          <div
+            class="bg-slate-100 border-b border-slate-200 py-3 px-4 font-bold text-xs tracking-wider text-slate-700 uppercase flex justify-between items-center">
+            <span>Schedules Analytics Overview</span>
+            <span
+              class="text-[9px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded uppercase font-bold">Week-scale</span>
+          </div>
+
+          <!-- Weekly Overview Stats Grid -->
+          <div class="p-4 space-y-3">
+            <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2">Weekly completion rates
+              overview:</h4>
+
+            <div class="space-y-2.5" id="todo-weekly-progress-grid">
+              <!-- Dynamically populated with Day labels and clean mini progress bars -->
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="p-3 bg-slate-50 border-t border-slate-200 text-center text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+          Weekly To-Do planning efficiency metric
+        </div>
+      </div>
+
+    </div>
+
     <!-- Row 3: Wellness Metrics & Rankings -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
@@ -722,56 +878,99 @@
         class="w-full bg-zinc-950 text-left px-5 py-4 font-bold text-sm tracking-wider uppercase flex justify-between items-center hover:bg-zinc-900 transition-colors">
         <span class="flex items-center gap-2">
           <i class="fa-solid fa-code text-amber-400" id="doc-accent-icon"></i>
-          DEVELOPER DOCUMENTATION & METADATA
+          DEVELOPER
         </span>
         <i class="fa-solid fa-chevron-down transition-transform duration-300" id="doc-chevron"></i>
       </button>
       <div id="doc-content-panel" class="hidden border-t border-zinc-800">
         <div class="p-6 space-y-6 text-xs sm:text-sm leading-relaxed">
 
-          <!-- Purpose Profile -->
-          <div class="bg-zinc-850 p-4 rounded-xl border border-zinc-800">
-            <h4 class="text-amber-400 font-extrabold uppercase tracking-wider text-xs mb-2">Usage License & Purpose</h4>
-            <p class="text-zinc-200">
-              This workspace environment has been professionally customized and developed for <strong>Rakib
-                Hasan</strong>. It functions as a secure, local, responsive client-side interface dedicated to personal
-              habit optimization, wellness telemetry, productivity analysis, and deep focus session management. No
-              external tracking is initiated.
-            </p>
-          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-          <!-- Technical Specs Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <h5 class="text-zinc-100 font-bold uppercase text-[11px] tracking-wider text-amber-500/90">Technical
-                Specifications</h5>
-              <ul class="list-disc pl-5 space-y-1 text-zinc-400">
-                <li><strong>Front-end Engine:</strong> Single-File HTML5 Architecture with Tailwind CSS Utility
-                  Framework.</li>
-                <li><strong>Theme Engine:</strong> Dynamic, state-remembered CSS Accent Token Mapping.</li>
-                <li><strong>Local Persistence:</strong> Synchronous caching in Local Storage via clean structured JSON.
-                </li>
-                <li><strong>Sound Synthesizer:</strong> Custom procedural buzzer utilizing pure Web Audio API oscillator
-                  nodes.</li>
-              </ul>
-            </div>
-            <div class="space-y-2">
-              <h5 class="text-zinc-100 font-bold uppercase text-[11px] tracking-wider text-amber-500/90">Database Schema
-                & Serialization</h5>
-              <p class="text-zinc-400">
-                The system runs entirely off client state, maintaining absolute data privacy. Structure parameters:
+            <!-- Left Panel: Stylized Developer Profile Card -->
+            <div
+              class="lg:col-span-4 bg-zinc-950 p-6 rounded-2xl border border-zinc-850 flex flex-col items-center text-center relative overflow-hidden shadow-2xl">
+              <!-- Animated Glowing Accents -->
+              <div class="absolute -top-12 -left-12 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl"></div>
+              <div class="absolute -bottom-12 -right-12 w-28 h-28 bg-amber-500/5 rounded-full blur-2xl"></div>
+
+              <!-- Professional Headshot Photo with custom placeholder fallback -->
+              <div class="relative w-28 h-28 mb-4">
+                <img src="Rakib_Hasan.jpg" onerror="this.src='https://placehold.co/150x150/1c1917/fbbf24?text=RH'"
+                  alt="Rakib Hasan"
+                  class="w-full h-full object-cover rounded-full border-4 border-zinc-800 shadow-xl shadow-black/50 transition duration-300 hover:border-amber-400">
+                <span
+                  class="absolute bottom-1 right-1 bg-emerald-500 w-4 h-4 rounded-full border-2 border-zinc-950 flex items-center justify-center"
+                  title="Developer Status: Active">
+                  <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                </span>
+              </div>
+
+              <!-- Dev Name & Title badges -->
+              <h4 class="text-white font-black text-lg uppercase tracking-wider">Rakib Hasan</h4>
+              <span
+                class="text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1 rounded-full font-bold uppercase tracking-widest mt-1.5 mb-3.5">SYSTEM
+                ARCHITECT & DEVELOPER</span>
+
+              <!-- Profile Description -->
+              <p class="text-xs text-zinc-400 leading-relaxed mb-5 text-center">
+                A software craftsman specializing in building high-performance workspace environments, real-time
+                telemetry metrics, dynamic dashboards, and secure local application infrastructures.
               </p>
-              <pre
-                class="bg-zinc-950 p-3 rounded-lg text-[10px] text-zinc-400 overflow-x-auto border border-zinc-850 font-mono">
+
+              <!-- Interactive WhatsApp Direct Connect Link -->
+              <a href="https://wa.me/8801756671617" target="_blank" rel="noopener noreferrer"
+                class="w-full py-2.5 bg-[#25D366] hover:bg-[#1ebd53] text-black font-extrabold uppercase rounded-xl tracking-wider transition duration-150 flex items-center justify-center gap-2 text-xs shadow-lg shadow-emerald-950/20">
+                <i class="fa-brands fa-whatsapp text-base"></i> WhatsApp Direct
+              </a>
+              <span class="text-[10px] text-zinc-500 font-mono mt-2 tracking-wide">Ref: 01756671617</span>
+            </div>
+
+            <!-- Right Panel: Specifications & System Architecture Details -->
+            <div class="lg:col-span-8 space-y-4">
+              <!-- Purpose Profile -->
+              <div class="bg-zinc-850 p-4 rounded-xl border border-zinc-800">
+                <h4 class="text-amber-400 font-extrabold uppercase tracking-wider text-xs mb-2">Workspace Scope & Target
+                </h4>
+                <p class="text-zinc-200">
+                  This workspace platform has been custom-developed for <strong>Rakib Hasan</strong>.
+                  It operates as a secure, local-first client-side terminal designed for personal habit roadmapping,
+                  real-time wellness telemetry, focus metrics tracking, and weekly planning. All telemetry runs entirely
+                  sandboxed within local browser caches.
+                </p>
+              </div>
+
+              <!-- Technical Specs List -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-2 bg-zinc-850 p-4 rounded-xl border border-zinc-800">
+                  <h5 class="text-zinc-100 font-bold uppercase text-[11px] tracking-wider text-amber-500/90">Technical
+                    Specifications</h5>
+                  <ul class="list-disc pl-5 space-y-1 text-zinc-400 text-xs">
+                    <li><strong>Rendering Core:</strong> Single-File HTML5 with Tailwind CSS Engine.</li>
+                    <li><strong>Theme Engine:</strong> Dynamic Accent Token CSS variables mapping.</li>
+                    <li><strong>Storage Cache:</strong> Automated synchronization with Local Storage JSON blocks.</li>
+                    <li><strong>Audio Synthesizer:</strong> Pure Web Audio API procedural oscillator modules.</li>
+                  </ul>
+                </div>
+                <div class="space-y-2 bg-zinc-850 p-4 rounded-xl border border-zinc-800">
+                  <h5 class="text-zinc-100 font-bold uppercase text-[11px] tracking-wider text-amber-500/90">Database
+                    Schema & Serialization</h5>
+                  <pre
+                    class="text-[9px] text-zinc-400 overflow-x-auto font-mono bg-zinc-950 p-2.5 rounded border border-zinc-800/80">
 {
   "year": 2026,
   "month": 3,
   "habits": [ { "id": "h_ts", "name": "Text", "category": "cat_id" } ],
   "categories": { "cat_id": { "label": "Label", "color": "bg-val", "hex": "#val" } },
   "history": { "YYYY-M": { "habit_id": [completed_days] } },
-  "wellness": { "YYYY-M": { "moods": { "day": "mood" }, "sleeps": { "day": hours } } }
+  "wellness": { "YYYY-M": { "moods": { "day": "mood" }, "sleeps": { "day": hours } } },
+  "todos": { "DayOfWeek": [ { "id": "t_id", "text": "Task details", "done": false } ] }
 }</pre>
+                </div>
+              </div>
             </div>
+
           </div>
 
           <!-- Footnote -->
@@ -789,7 +988,7 @@
   <script>
 
     // Storage configuration key
-    const STORAGE_KEY = 'habit_tracker_pro_db_v4';
+    const STORAGE_KEY = 'habit_tracker_pro_db_v5';
 
     // Secure English Workspace credentials database
     const AUTH_USER_DATABASE = [
@@ -807,7 +1006,34 @@
       "routine": { label: "Daily Routine", color: "bg-indigo-500", border: "border-indigo-500", hex: "#6366f1" }
     };
 
-    // Seed Data Matching March 2026 perfectly with "ChatGPT Image Jul 11, 2026, 06_12_14 PM.png"
+    // Default Seed To-Do list mapping standard days of the week
+    const DEFAULT_TODO_DATA = {
+      "Monday": [
+        { id: "todo_m1", text: "Submit Weekly Strategy Deck 📊", done: true },
+        { id: "todo_m2", text: "Pay Workspace Server Bills ⚡", done: false }
+      ],
+      "Tuesday": [
+        { id: "todo_t1", text: "Review Rakib's App Code Architecture 💻", done: false },
+        { id: "todo_t2", text: "Cardio Focus Session 🏃‍♂️", done: true }
+      ],
+      "Wednesday": [
+        { id: "todo_w1", text: "Buy Groceries and Fresh Berries 🍓", done: false }
+      ],
+      "Thursday": [
+        { id: "todo_th1", text: "Schedule Client feedback review 📞", done: false }
+      ],
+      "Friday": [
+        { id: "todo_f1", text: "Perform weekly DB cache backups 📁", done: true }
+      ],
+      "Saturday": [
+        { id: "todo_sa1", text: "Clean main workstation space 🧹", done: false }
+      ],
+      "Sunday": [
+        { id: "todo_su1", text: "Outline target strategies for upcoming week 🎯", done: false }
+      ]
+    };
+
+    // Seed Data Matching March 2026 perfectly
     const INITIAL_SEED_DATA = {
       year: 2026,
       month: 3, // March
@@ -828,7 +1054,6 @@
       ],
       history: {
         "2026-3": {
-          // Match EXACT stats: Goal 372, Completed 220, Left 152
           "h1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
           "h2": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
           "h3": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 21, 22, 23],
@@ -852,11 +1077,14 @@
             1: 7, 2: 6, 3: 7, 4: 8, 5: 6, 6: 7, 7: 8, 8: 7, 9: 6, 10: 7, 11: 8, 12: 7, 13: 6, 14: 7, 15: 7, 16: 8
           }
         }
-      }
+      },
+      todos: JSON.parse(JSON.stringify(DEFAULT_TODO_DATA))
     };
 
     // Active State Memory
     let dbState = {};
+    let activeDay = 12; // Current active tracking day of the selected month
+    let activeTodoDay = "Monday"; // Current day selection in To-Do planner
 
     // Focus Timer State
     let timerMode = 'pomodoro'; // 'pomodoro' or 'stopwatch'
@@ -1033,6 +1261,14 @@
       document.getElementById('calendar-year').value = dbState.year;
       document.getElementById('calendar-month').value = dbState.month;
 
+      // Sync active day with real date if matching current year/month
+      const todayDate = new Date();
+      if (todayDate.getFullYear() === dbState.year && (todayDate.getMonth() + 1) === dbState.month) {
+        activeDay = todayDate.getDate();
+      } else {
+        activeDay = Math.min(12, getDaysInMonth(dbState.year, dbState.month));
+      }
+
       if (dbState.accentTheme) {
         currentActiveTheme = dbState.accentTheme;
         document.getElementById('app-accent-theme').value = currentActiveTheme;
@@ -1050,6 +1286,10 @@
           // Ensure categories exists
           if (!dbState.categories) {
             dbState.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+          }
+          // Safely load or inject the custom weekly to-do list schema
+          if (!dbState.todos) {
+            dbState.todos = JSON.parse(JSON.stringify(DEFAULT_TODO_DATA));
           }
         } catch (e) {
           dbState = JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
@@ -1091,10 +1331,12 @@
       document.getElementById('brand-accent-text').className = `text-3xl font-black tracking-widest uppercase text-center ${theme.text}`;
       document.getElementById('brand-accent-crown').className = `fa-solid fa-crown text-2xl animate-bounce ${theme.text}`;
       document.getElementById('timer-accent-icon').className = `fa-solid fa-hourglass-start mr-1.5 animate-pulse ${theme.text}`;
+      document.getElementById('checklist-accent-icon').className = `fa-solid fa-list-check mr-1.5 ${theme.text}`;
       document.getElementById('table-accent-title').className = `font-extrabold text-xs uppercase tracking-wider ${theme.text}`;
       document.getElementById('add-habit-btn-theme').className = `${theme.text} hover:opacity-80 text-xs px-1 font-bold`;
       document.getElementById('doc-accent-icon').className = `fa-solid fa-code ${theme.text}`;
       document.getElementById('top-habits-accent-fire').className = `fa-solid fa-fire mr-1.5 ${theme.text}`;
+      document.getElementById('todo-accent-icon').className = `fa-solid fa-calendar-check mr-1.5 ${theme.text}`;
 
       document.getElementById('donut-progress-stroke').setAttribute('stroke', theme.donutColor);
 
@@ -1160,6 +1402,12 @@
     function onCalendarChange() {
       dbState.year = parseInt(document.getElementById('calendar-year').value) || new Date().getFullYear();
       dbState.month = parseInt(document.getElementById('calendar-month').value) || 1;
+
+      const maxDays = getDaysInMonth(dbState.year, dbState.month);
+      if (activeDay > maxDays) {
+        activeDay = maxDays;
+      }
+
       saveDatabase();
       renderAll();
       showToast("Calendar view updated successfully!");
@@ -1169,6 +1417,7 @@
       return new Date(year, month, 0).getDate();
     }
 
+    // Timer Controls
     function setTimerMode(mode) {
       timerMode = mode;
       const btnPomo = document.getElementById('btn-mode-pomo');
@@ -1267,6 +1516,19 @@
         osc.start();
         osc.stop(ctx.currentTime + 1.2);
       } catch (e) { console.error("Web Audio synthesis error: ", e); }
+    }
+
+    // Change active day in Focus Checklist
+    function changeActiveDay(offset) {
+      const year = dbState.year;
+      const month = dbState.month;
+      const maxDays = getDaysInMonth(year, month);
+
+      activeDay += offset;
+      if (activeDay < 1) activeDay = maxDays;
+      if (activeDay > maxDays) activeDay = 1;
+
+      renderAll();
     }
 
     function calculateCurrentStreak(checkedDays) {
@@ -1440,6 +1702,162 @@
       showToast("Habit renamed successfully.");
     }
 
+    // NEW TO-DO PLANNER STATE LOGIC
+    function setActiveTodoDay(dayName) {
+      activeTodoDay = dayName;
+      renderWeeklyTodos();
+    }
+
+    function handleTodoInputKeyPress(event) {
+      if (event.key === 'Enter') {
+        submitNewTodo();
+      }
+    }
+
+    function submitNewTodo() {
+      const input = document.getElementById('input-new-todo-text');
+      const text = input.value.trim();
+
+      if (!text) {
+        showToast("Task description cannot be empty!", "error");
+        return;
+      }
+
+      if (!dbState.todos) {
+        dbState.todos = JSON.parse(JSON.stringify(DEFAULT_TODO_DATA));
+      }
+
+      const newTodo = {
+        id: "todo_" + Date.now(),
+        text: text,
+        done: false
+      };
+
+      dbState.todos[activeTodoDay].push(newTodo);
+      saveDatabase();
+      input.value = '';
+      renderWeeklyTodos();
+      showToast(`Task successfully added to ${activeTodoDay}!`);
+    }
+
+    function toggleTodoStatus(dayName, id) {
+      const todo = dbState.todos[dayName].find(t => t.id === id);
+      if (todo) {
+        todo.done = !todo.done;
+        saveDatabase();
+        renderWeeklyTodos();
+      }
+    }
+
+    function deleteTodoItem(dayName, id) {
+      dbState.todos[dayName] = dbState.todos[dayName].filter(t => t.id !== id);
+      saveDatabase();
+      renderWeeklyTodos();
+      showToast("Task removed from plan.", "info");
+    }
+
+    function renderWeeklyTodos() {
+      if (!dbState.todos) {
+        dbState.todos = JSON.parse(JSON.stringify(DEFAULT_TODO_DATA));
+      }
+
+      const currentDayTodos = dbState.todos[activeTodoDay] || [];
+      const container = document.getElementById('todo-list-items-container');
+      const accent = accentThemes[currentActiveTheme];
+
+      // Render active day target title
+      document.getElementById('todo-active-day-title').innerText = activeTodoDay;
+      document.getElementById('todo-active-day-title').className = `font-extrabold ${accent.text}`;
+
+      // Update To-Do Day switcher buttons UI
+      const tabs = document.querySelectorAll('.todo-tab-btn');
+      tabs.forEach(tab => {
+        const tabDay = tab.id.replace('todo-tab-', '');
+        const dayTodos = dbState.todos[tabDay] || [];
+        const total = dayTodos.length;
+        const done = dayTodos.filter(t => t.done).length;
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+        // Label layout inside switcher buttons
+        tab.innerHTML = `
+          <span>${tabDay.substring(0, 3)}</span>
+          <span class="block text-[8px] font-mono tracking-normal opacity-85 mt-0.5">${pct}%</span>
+        `;
+
+        if (tabDay === activeTodoDay) {
+          tab.className = `todo-tab-btn flex-1 py-2 px-3 text-xs font-black rounded-lg transition duration-150 uppercase tracking-wider text-center text-white ${accent.bg} shadow-md`;
+        } else {
+          tab.className = `todo-tab-btn flex-1 py-2 px-3 text-xs font-bold rounded-lg transition duration-150 uppercase tracking-wider text-center bg-white border border-slate-200 text-slate-600 hover:bg-slate-100`;
+        }
+      });
+
+      // Calculate active day completion percentage
+      const totalCount = currentDayTodos.length;
+      const completedCount = currentDayTodos.filter(t => t.done).length;
+      const pctValue = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+      // Update active day progress visualization
+      document.getElementById('todo-day-progress-pct').innerText = `${pctValue}% Complete`;
+
+      const barFill = document.getElementById('todo-day-progress-bar-fill');
+      barFill.style.width = `${pctValue}%`;
+      barFill.className = `${accent.bg} h-full transition-all duration-300`;
+
+      // Clear list first
+      container.innerHTML = '';
+
+      if (totalCount === 0) {
+        container.innerHTML = `
+          <div class="text-center py-6 text-slate-400 font-semibold text-xs uppercase tracking-wider">
+            No specific tasks listed for ${activeTodoDay}.
+          </div>
+        `;
+      } else {
+        currentDayTodos.forEach(todo => {
+          const div = document.createElement('div');
+          div.className = 'flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition duration-150 bg-white shadow-xs';
+
+          div.innerHTML = `
+            <div class="flex items-center space-x-3 truncate">
+              <input type="checkbox" ${todo.done ? 'checked' : ''} 
+                onclick="toggleTodoStatus('${activeTodoDay}', '${todo.id}')"
+                class="w-4 h-4 rounded text-black border-slate-300 focus:ring-0 cursor-pointer accent-black">
+              <span class="truncate text-xs font-semibold text-slate-700 ${todo.done ? 'line-through text-slate-400 font-medium' : ''}">${todo.text}</span>
+            </div>
+            <button onclick="deleteTodoItem('${activeTodoDay}', '${todo.id}')" class="text-slate-400 hover:text-red-500 transition px-2">
+              <i class="fa-solid fa-trash-can text-xs"></i>
+            </button>
+          `;
+          container.appendChild(div);
+        });
+      }
+
+      // Render the Weekly Overview Sparkline Grid (Right Panel)
+      const overviewGrid = document.getElementById('todo-weekly-progress-grid');
+      overviewGrid.innerHTML = '';
+
+      const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+      daysOfWeek.forEach(day => {
+        const dayTodos = dbState.todos[day] || [];
+        const total = dayTodos.length;
+        const done = dayTodos.filter(t => t.done).length;
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+        const isCurrentActive = day === activeTodoDay;
+
+        const row = document.createElement('div');
+        row.className = `flex items-center justify-between gap-3 p-1.5 rounded-lg transition duration-150 ${isCurrentActive ? 'bg-slate-50 border border-slate-200/50' : ''}`;
+
+        row.innerHTML = `
+          <span class="text-xs font-bold text-slate-600 w-20 uppercase tracking-wider text-left">${day.substring(0, 9)}</span>
+          <div class="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/40">
+            <div class="${accent.bg} h-full rounded-full" style="width: ${pct}%"></div>
+          </div>
+          <span class="text-xs font-black font-mono text-slate-800 w-10 text-right">${pct}%</span>
+        `;
+        overviewGrid.appendChild(row);
+      });
+    }
 
     // CORE RENDERING IMPLEMENTATION
     function renderAll() {
@@ -1449,6 +1867,11 @@
       const totalDays = getDaysInMonth(year, month);
       const activeFilter = document.getElementById('habit-category-filter').value;
       const activeAccent = accentThemes[currentActiveTheme];
+
+      // Safe bounds check for activeDay when changing months with fewer days
+      if (activeDay > totalDays) {
+        activeDay = totalDays;
+      }
 
       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
       document.getElementById('current-month-display').innerText = `• ${monthNames[month - 1]} •`;
@@ -1519,14 +1942,14 @@
         const catInfo = categories[habit.category] || categories['routine'];
 
         let tdNameHtml = `
-                    <td class="border-r border-slate-200 bg-zinc-900 text-white font-semibold px-3 py-2 flex items-center justify-between group relative">
+                    <td class="border-r border-slate-200 bg-zinc-900 text-white font-semibold px-3 py-2 flex items-center justify-between group relative w-60">
                         <div class="flex items-center space-x-2 max-w-[150px]">
                             <span class="w-2 h-2 rounded-full ${catInfo.color}"></span>
                             <span class="truncate cursor-pointer hover:text-yellow-300 font-bold" onclick="openRenameHabitModal('${habit.id}')">${habit.name}</span>
                         </div>
                         <div class="flex items-center space-x-1.5 ml-2">
                             ${currentStreak > 0 ? `<span class="text-orange-400 font-bold text-[10px] flex items-center animate-pulse" title="Current Streak"><i class="fa-solid fa-fire mr-0.5"></i>${currentStreak}</span>` : ''}
-                            <div class="hidden group-hover:flex items-center space-x-1">
+                            <div class="hidden group-hover:flex items-center space-x-1 text-slate-300">
                                 <button onclick="openRenameHabitModal('${habit.id}')" class="text-blue-300 hover:text-white" title="Rename"><i class="fa-solid fa-edit text-[9px]"></i></button>
                                 <button onclick="deleteHabit('${habit.id}')" class="text-red-400 hover:text-red-500" title="Delete"><i class="fa-solid fa-trash text-[9px]"></i></button>
                             </div>
@@ -1610,9 +2033,58 @@
         document.getElementById('insight-worst-stat').innerText = "0%";
       }
 
+      // Render Sub-Components
+      renderActiveDayChecklist(history);
       updateDailyProgressBars(totalDays, totalActiveHabitsCount, history);
       updateWellnessGrid(wellness, totalDays);
       updateTopHabitsList(history, totalDays);
+      renderWeeklyTodos();
+    }
+
+    // Renders the Interactive Day Focus Checklist Panel
+    function renderActiveDayChecklist(history) {
+      const checklistContainer = document.getElementById('daily-checklist-container');
+      checklistContainer.innerHTML = '';
+
+      document.getElementById('active-day-display').innerText = `Day ${activeDay}`;
+
+      let dayGoal = 0;
+      let dayCompleted = 0;
+
+      dbState.habits.forEach(habit => {
+        dayGoal++;
+        const isChecked = history[habit.id] && history[habit.id].includes(activeDay);
+        if (isChecked) {
+          dayCompleted++;
+        }
+
+        // Checklist row element
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between p-2 rounded-lg border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition duration-150 bg-white shadow-xs';
+
+        div.innerHTML = `
+          <div class="flex items-center space-x-2 truncate">
+            <span class="w-1.5 h-1.5 rounded-full ${dbState.categories[habit.category]?.color || 'bg-slate-400'}"></span>
+            <span class="truncate font-semibold text-xs text-slate-700 ${isChecked ? 'line-through text-slate-400' : ''}">${habit.name}</span>
+          </div>
+          <input type="checkbox"
+                 class="w-4 h-4 rounded text-black border-slate-300 focus:ring-0 cursor-pointer accent-black"
+                 ${isChecked ? 'checked' : ''}
+                 onclick="toggleCheck('${habit.id}', ${activeDay})">
+        `;
+        checklistContainer.appendChild(div);
+      });
+
+      if (dayGoal === 0) {
+        checklistContainer.innerHTML = '<div class="text-center py-4 text-slate-400 text-xs font-semibold">No habits listed.</div>';
+      }
+
+      const dayLeft = Math.max(0, dayGoal - dayCompleted);
+
+      // Render daily stats with the customized Left transparent styling
+      document.getElementById('day-stat-goal').innerText = dayGoal;
+      document.getElementById('day-stat-completed').innerText = dayCompleted;
+      document.getElementById('day-stat-left').innerText = dayLeft;
     }
 
     function toggleCheck(habitId, day) {
@@ -1657,7 +2129,7 @@
         }
 
         const barWrapper = document.createElement('div');
-        barWrapper.className = 'flex-1 flex flex-col justify-end items-center h-full group relative px-[1px]';
+        barWrapper.className = 'flex-1 flex flex-col justify-end items-center h-full group relative px-[0.5px]';
 
         const fillBar = document.createElement('div');
         fillBar.className = isDayValid ? `${activeAccent.bg} w-full rounded-t-sm transition-all duration-300` : 'bg-transparent w-full';
@@ -1666,8 +2138,8 @@
         if (isDayValid) {
           fillBar.className += ' cursor-pointer hover:bg-zinc-700';
           const tooltip = document.createElement('span');
-          tooltip.className = 'absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 bg-black text-white text-[9px] py-0.5 px-1.5 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-30 shadow-md font-mono';
-          tooltip.innerText = `Day ${day}: ${Math.round(pct)}%`;
+          tooltip.className = 'absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 bg-black text-white text-[8px] py-0.5 px-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-30 shadow-md font-mono';
+          tooltip.innerText = `D${day}: ${Math.round(pct)}%`;
           barWrapper.appendChild(tooltip);
         }
 
@@ -1675,7 +2147,7 @@
         container.appendChild(barWrapper);
 
         const label = document.createElement('span');
-        label.className = `flex-1 text-center font-bold text-[9px] ${isDayValid ? 'text-slate-600' : 'text-slate-300'}`;
+        label.className = `flex-1 text-center font-bold text-[7px] ${isDayValid ? 'text-slate-600' : 'text-slate-300'}`;
         label.innerText = day;
         labelsContainer.appendChild(label);
       }
