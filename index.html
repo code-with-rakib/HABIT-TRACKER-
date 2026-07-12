@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Habit Tracker Dashboard Pro</title>
+  <!-- Tailwind CSS for modern utility styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      transition: background-color 0.3s ease;
+    }
+
+    /* Custom scrollbars */
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Pulse animation for active timer */
+    @keyframes pulse-ring {
+      0% {
+        transform: scale(0.95);
+        opacity: 0.5;
+      }
+
+      50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+      }
+
+      100% {
+        transform: scale(0.95);
+        opacity: 0.5;
+      }
+    }
+
+    .pulse-active {
+      animation: pulse-ring 2s infinite ease-in-out;
+    }
+
+    /* Theme transitions */
+    .theme-transition {
+      transition: all 0.2s ease-in-out;
+    }
+  </style>
+</head>
+
+<body class="text-slate-900 bg-slate-50 min-h-screen">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[99] space-y-2 pointer-events-none"></div>
+
+  <!-- Custom Dialog Modal (Delete/Generic Confirm) -->
+  <div id="custom-modal"
+    class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+    <div
+      class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 transform scale-95 transition-transform duration-300">
+      <h3 id="modal-title" class="text-lg font-bold text-slate-900 mb-2">Confirm Action</h3>
+      <p id="modal-message" class="text-sm text-slate-600 mb-6">Are you sure you want to proceed?</p>
+      <div class="flex justify-end space-x-3">
+        <button id="modal-cancel-btn"
+          class="px-4 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100 rounded-lg transition">Cancel</button>
+        <button id="modal-confirm-btn"
+          class="px-4 py-2 text-xs font-semibold text-white bg-black hover:bg-slate-850 rounded-lg transition">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Habit Modal -->
+  <div id="modal-add-habit"
+    class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+    <div
+      class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 transform scale-95 transition-transform duration-300">
+      <h3 class="text-lg font-black text-slate-900 mb-4">ADD NEW HABIT</h3>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Habit Name</label>
+          <input type="text" id="input-habit-name" placeholder="e.g., Read 10 Pages 📚"
+            class="w-full px-3.5 py-2 border border-slate-200 rounded-xl outline-none focus:border-amber-400 focus:bg-slate-50 font-semibold text-sm transition">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Category</label>
+          <select id="select-habit-category"
+            class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-amber-400 font-semibold text-sm transition">
+            <!-- Dynamic Categories Injected Here -->
+          </select>
+        </div>
+      </div>
+      <div class="flex justify-end space-x-3 mt-6">
+        <button onclick="closeAddHabitModal()"
+          class="px-4 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100 rounded-lg transition">Cancel</button>
+        <button onclick="submitAddHabit()"
+          class="px-4 py-2 text-xs font-bold text-white bg-black hover:bg-slate-800 rounded-lg transition">Save
+          Habit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Category Modal -->
+  <div id="modal-add-category"
+    class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+    <div
+      class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 transform scale-95 transition-transform duration-300">
+      <h3 class="text-lg font-black text-slate-900 mb-4 font-sans tracking-wide">CREATE CATEGORY</h3>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Category Name</label>
+          <input type="text" id="input-category-name" placeholder="e.g., Career, Finance"
+            class="w-full px-3.5 py-2 border border-slate-200 rounded-xl outline-none focus:border-amber-400 focus:bg-slate-50 font-semibold text-sm transition">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Label Color</label>
+          <div class="grid grid-cols-4 gap-2" id="category-color-grid">
+            <button type="button" onclick="selectCategoryColor('emerald')"
+              class="color-dot-option p-2 bg-emerald-500 text-white text-xs font-bold rounded-lg border-2 border-transparent transition shadow-sm hover:scale-105"
+              data-color="emerald">Emerald</button>
+            <button type="button" onclick="selectCategoryColor('blue')"
+              class="color-dot-option p-2 bg-blue-500 text-white text-xs font-bold rounded-lg border-2 border-transparent transition shadow-sm hover:scale-105"
+              data-color="blue">Blue</button>
+            <button type="button" onclick="selectCategoryColor('indigo')"
+              class="color-dot-option p-2 bg-indigo-500 text-white text-xs font-bold rounded-lg border-2 border-transparent transition shadow-sm hover:scale-105"
+              data-color="indigo">Indigo</button>
+            <button type="button" onclick="selectCategoryColor('rose')"
+              class="color-dot-option p-2 bg-rose-500 text-white text-xs font-bold rounded-lg border-2 border-transparent transition shadow-sm hover:scale-105"
+              data-color="rose">Rose</button>
+            <button type="button" onclick="selectCategoryColor('purple')"
+              class="color-dot-option p-2 bg-purple-500 text-white text-xs font-bold rounded-lg border-2 border-transparent transition shadow-sm hover:scale-105"
+              data-color="purple">Purple</button>
+            <button type="button" onclick="selectCategoryColor('amber')"
+              class="color-dot-option p-2 bg-amber-500 text-white text-xs font-bold rounded-lg border-2 border-transparent transition shadow-sm hover:scale-105"
+              data-color="amber">Amber</button>
+            <button type="button" onclick="selectCategoryColor('orange')"
+              class="color-dot-option p-2 bg-orange-500 text-white text-xs font-bold rounded-lg border-2 border-transparent transition shadow-sm hover:scale-105"
+              data-color="orange">Orange</button>
+            <button type="button" onclick="selectCategoryColor('teal')"
+              class="color-dot-option p-2 bg-teal-500 text-white text-xs font-bold rounded-lg border-2 border-transparent transition shadow-sm hover:scale-105"
+              data-color="teal">Teal</button>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end space-x-3 mt-6">
+        <button onclick="closeAddCategoryModal()"
+          class="px-4 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100 rounded-lg transition">Cancel</button>
+        <button onclick="submitAddCategory()"
+          class="px-4 py-2 text-xs font-bold text-white bg-black hover:bg-slate-800 rounded-lg transition">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rename Habit Modal -->
+  <div id="modal-rename-habit"
+    class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+    <div
+      class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 transform scale-95 transition-transform duration-300">
+      <h3 class="text-lg font-black text-slate-900 mb-4">RENAME HABIT</h3>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">New Name</label>
+          <input type="text" id="input-rename-value" placeholder="Rename habit..."
+            class="w-full px-3.5 py-2 border border-slate-200 rounded-xl outline-none focus:border-amber-400 focus:bg-slate-50 font-semibold text-sm transition">
+        </div>
+      </div>
+      <div class="flex justify-end space-x-3 mt-6">
+        <button onclick="closeRenameHabitModal()"
+          class="px-4 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100 rounded-lg transition">Cancel</button>
+        <button onclick="submitRenameHabit()"
+          class="px-4 py-2 text-xs font-bold text-white bg-black hover:bg-slate-800 rounded-lg transition">Save
+          Changes</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- SECURE JSON LOGIN PAGE -->
+  <div id="login-overlay"
+    class="fixed inset-0 bg-zinc-950 backdrop-blur-md z-50 flex items-center justify-center transition-all duration-500">
+    <div
+      class="bg-zinc-900 text-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border border-zinc-800 transform scale-100 transition-all duration-300 relative overflow-hidden">
+      <!-- Glow Effect -->
+      <div class="absolute -top-16 -left-16 w-36 h-36 bg-amber-500/10 rounded-full blur-2xl"></div>
+      <div class="absolute -bottom-16 -right-16 w-36 h-36 bg-amber-500/10 rounded-full blur-2xl"></div>
+
+      <div class="flex flex-col items-center justify-center text-center mb-6 relative">
+        <div class="bg-amber-500 p-3 rounded-2xl text-black mb-3 shadow-lg shadow-amber-500/20">
+          <i class="fa-solid fa-shield-halved text-2xl"></i>
+        </div>
+        <h1 class="text-2xl font-black tracking-widest uppercase text-amber-400">HABIT GAIN PRO</h1>
+        <p class="text-xs text-zinc-400 mt-1 uppercase tracking-wider">Authorized Workspace Access</p>
+      </div>
+
+      <!-- Login Credentials Input -->
+      <form id="login-form" class="space-y-4 relative">
+        <div class="space-y-1">
+          <label class="block text-[10px] font-bold uppercase text-zinc-400 tracking-wider">Username</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-500">
+              <i class="fa-solid fa-user text-xs"></i>
+            </span>
+            <input type="text" id="login-username" required placeholder="Enter username..."
+              class="w-full pl-9 pr-3 py-2.5 text-sm bg-zinc-850 border border-zinc-800 rounded-xl outline-none focus:border-amber-400 focus:bg-zinc-800 font-semibold text-white transition">
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="block text-[10px] font-bold uppercase text-zinc-400 tracking-wider">Password</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-500">
+              <i class="fa-solid fa-lock text-xs"></i>
+            </span>
+            <input type="password" id="login-password" required placeholder="Enter password..."
+              class="w-full pl-9 pr-3 py-2.5 text-sm bg-zinc-850 border border-zinc-800 rounded-xl outline-none focus:border-amber-400 focus:bg-zinc-800 font-semibold text-white transition">
+          </div>
+        </div>
+
+        <!-- Credential Hints Info -->
+
+
+        <button type="submit"
+          class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-black font-extrabold uppercase rounded-xl tracking-wider transition-all duration-150 transform active:scale-95 text-xs shadow-lg shadow-amber-500/10">
+          Authenticate Session <i class="fa-solid fa-arrow-right ml-1"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- MAIN WORKSPACE APP (hidden initially) -->
+  <div id="main-app" class="hidden max-w-[1680px] mx-auto p-2 sm:p-4 space-y-4">
+
+    <!-- Premium Action Header -->
+    <div
+      class="flex flex-col lg:flex-row justify-between items-center bg-black text-white p-4 rounded-xl shadow-lg gap-4">
+      <div class="flex items-center space-x-3 w-full lg:w-auto justify-between lg:justify-start">
+        <div class="flex items-center space-x-3">
+          <div id="theme-icon-bg"
+            class="bg-gradient-to-tr from-amber-400 to-yellow-500 p-2.5 rounded-lg text-black transition-colors duration-300">
+            <i class="fa-solid fa-crown text-lg"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl font-black tracking-widest uppercase">HABIT GAIN PRO</h1>
+              <span id="badge-theme-text"
+                class="text-[9px] bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold uppercase px-2 py-0.5 rounded">Active</span>
+            </div>
+            <p class="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">User Workspace: <span
+                class="text-white" id="header-user-display">Rakib Hasan</span></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Highly Responsive Controls & Filter Options -->
+      <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-between lg:justify-end">
+
+        <!-- Quick Appearance Selector -->
+        <div
+          class="flex items-center bg-zinc-950 border border-zinc-800 rounded-xl px-2.5 py-1.5 gap-2 text-xs w-full sm:w-auto justify-between">
+          <span class="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Accent Theme:</span>
+          <select id="app-accent-theme" onchange="changeAccentColor(this.value)"
+            class="bg-zinc-900 text-xs border border-zinc-700 rounded px-2 py-1 text-slate-200 outline-none">
+            <option value="amber">Amber Glow</option>
+            <option value="emerald">Emerald Forest</option>
+            <option value="purple">Royal Purple</option>
+            <option value="sky">Ocean Blue</option>
+            <option value="rose">Rose Red</option>
+          </select>
+        </div>
+
+        <!-- Export / Import Controllers -->
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <button onclick="exportBackup()"
+            class="flex-1 sm:flex-none flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 text-[11px] text-slate-200 font-bold py-2.5 px-3.5 rounded-lg border border-zinc-700 transition duration-150">
+            <i class="fa-solid fa-download mr-1.5 text-amber-400"></i> Export JSON
+          </button>
+          <button onclick="document.getElementById('importFile').click()"
+            class="flex-1 sm:flex-none flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 text-[11px] text-slate-200 font-bold py-2.5 px-3.5 rounded-lg border border-zinc-700 transition duration-150">
+            <i class="fa-solid fa-upload mr-1.5 text-emerald-400"></i> Import JSON
+          </button>
+          <input type="file" id="importFile" class="hidden" accept=".json" onchange="importBackup(event)">
+
+          <!-- Secure Sign Out Button -->
+          <button onclick="handleLocalLogout()"
+            class="bg-red-950/80 border border-red-900/60 text-red-300 hover:bg-red-900 hover:text-white text-[11px] font-bold py-2.5 px-3.5 rounded-lg transition duration-150"
+            title="Sign Out">
+            <i class="fa-solid fa-door-open"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 1: Dashboard Analytics & Widgets -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-4">
+
+      <!-- Widget 1: Title & Calendar Settings -->
+      <div class="xl:col-span-3 flex flex-col justify-between space-y-4">
+        <!-- Habit Tracker Title Card -->
+        <div
+          class="bg-black text-white p-6 rounded-xl shadow-md flex flex-col items-center justify-center text-center h-1/2 min-h-[140px] relative overflow-hidden">
+          <div class="absolute inset-0 bg-radial-gradient from-zinc-800 to-transparent opacity-20 pointer-events-none">
+          </div>
+          <h1 class="text-3xl font-black tracking-widest uppercase text-amber-400" id="brand-accent-text">HABIT TRACKER
+          </h1>
+          <p class="text-xl mt-2 font-bold tracking-wide text-slate-300" id="current-month-display">• March •</p>
+        </div>
+
+        <!-- Calendar Settings Card -->
+        <div
+          class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden h-1/2 flex flex-col min-h-[140px]">
+          <div
+            class="bg-slate-100 border-b border-slate-200 py-2.5 text-center font-bold text-xs tracking-wider text-slate-700 uppercase">
+            CALENDAR SETTINGS
+          </div>
+          <div class="p-4 flex-1 flex flex-col justify-center space-y-3">
+            <div class="flex items-center border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+              <span
+                class="bg-slate-50 text-slate-500 text-[11px] font-bold px-3 py-2.5 w-24 text-center uppercase border-r border-slate-200 font-mono">Year</span>
+              <input type="number" id="calendar-year"
+                class="w-full px-3 py-2 text-sm outline-none focus:bg-amber-50/50 font-semibold" value="2026"
+                onchange="onCalendarChange()">
+            </div>
+            <div class="flex items-center border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+              <span
+                class="bg-slate-50 text-slate-500 text-[11px] font-bold px-3 py-2.5 w-24 text-center uppercase border-r border-slate-200 font-mono">Month</span>
+              <select id="calendar-month"
+                class="w-full px-3 py-2 text-sm bg-white outline-none focus:bg-amber-50/50 font-semibold"
+                onchange="onCalendarChange()">
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3" selected>March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Widget 2: Study / Focus Timer (Pomodoro + Stopwatch) -->
+      <div
+        class="xl:col-span-3 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col justify-between min-h-[300px]">
+        <div
+          class="bg-black text-white py-2.5 px-4 flex justify-between items-center font-bold text-xs tracking-wider uppercase">
+          <span><i class="fa-solid fa-hourglass-start text-amber-400 mr-1.5 animate-pulse" id="timer-accent-icon"></i>
+            Focus & Study Timer</span>
+          <div class="flex space-x-1.5">
+            <button onclick="setTimerMode('pomodoro')" id="btn-mode-pomo"
+              class="bg-amber-500 text-black text-[10px] px-2 py-0.5 rounded font-extrabold theme-transition">POMO</button>
+            <button onclick="setTimerMode('stopwatch')" id="btn-mode-sw"
+              class="bg-zinc-800 text-slate-400 text-[10px] px-2 py-0.5 rounded font-extrabold theme-transition">WATCH</button>
+          </div>
+        </div>
+
+        <div class="p-4 flex-1 flex flex-col justify-center items-center">
+          <!-- Timer Display Area -->
+          <div class="text-center relative">
+            <div class="text-4xl sm:text-5xl font-black tracking-widest text-slate-900 font-mono" id="timer-display">
+              25:00</div>
+            <div class="text-[10px] text-slate-400 font-bold uppercase mt-1 tracking-wider" id="timer-status">Ready to
+              Focus</div>
+          </div>
+
+          <div class="flex items-center justify-center space-x-3 mt-6">
+            <button id="btn-timer-toggle" onclick="toggleTimer()"
+              class="w-12 h-12 bg-black hover:bg-slate-850 text-white rounded-full flex items-center justify-center shadow-lg transition transform hover:scale-105">
+              <i class="fa-solid fa-play text-sm ml-1" id="icon-timer-play"></i>
+            </button>
+            <button onclick="resetTimer()"
+              class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full flex items-center justify-center shadow transition">
+              <i class="fa-solid fa-rotate-left text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Custom time selector footer -->
+        <div class="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex justify-between items-center text-xs">
+          <span class="text-slate-500 font-semibold">Select Session:</span>
+          <div class="flex space-x-1">
+            <button onclick="setTimerMinutes(15)"
+              class="bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 px-2 py-1 rounded font-bold text-[10px]">15m</button>
+            <button onclick="setTimerMinutes(25)"
+              class="bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 px-2 py-1 rounded font-bold text-[10px]">25m</button>
+            <button onclick="setTimerMinutes(45)"
+              class="bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 px-2 py-1 rounded font-bold text-[10px]">45m</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Widget 3: Combined Daily/Weekly Progress Charts -->
+      <div
+        class="xl:col-span-4 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col justify-between min-h-[300px]">
+        <div
+          class="bg-slate-100 border-b border-slate-200 py-2.5 text-center font-bold text-xs tracking-wider text-slate-700 uppercase">
+          Daily Progress Charts
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div class="flex h-36 items-end relative border-b border-slate-200 pb-1">
+            <!-- Y Axis Indicators -->
+            <div
+              class="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-[9px] text-slate-400 pr-1 select-none pointer-events-none z-10 font-mono">
+              <span>100%</span>
+              <span>50%</span>
+              <span>0%</span>
+            </div>
+            <!-- Bar chart elements container -->
+            <div class="w-full h-full flex justify-between items-end pl-8 gap-[1.5px]" id="daily-progress-bars">
+              <!-- Dynamic Bars render here -->
+            </div>
+          </div>
+          <!-- Chart X-axis labels (days) -->
+          <div
+            class="w-full flex justify-between pl-8 text-[8px] font-semibold text-slate-500 mt-1.5 select-none font-mono"
+            id="daily-progress-labels">
+            <!-- Day labels render here -->
+          </div>
+        </div>
+        <div
+          class="px-4 py-2 border-t border-slate-100 bg-slate-50 text-[10px] text-slate-400 font-semibold text-center uppercase tracking-wider">
+          Relative percentage of completed habits per day
+        </div>
+      </div>
+
+      <!-- Widget 4: Overall Stats & Interactive Donut Chart -->
+      <div class="xl:col-span-2 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
+        <div
+          class="bg-slate-100 border-b border-slate-200 py-2.5 text-center font-bold text-xs tracking-wider text-slate-700 uppercase">
+          Overall Stats
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between items-center gap-4">
+
+          <!-- Stats Grid -->
+          <div class="w-full grid grid-cols-3 xl:grid-cols-1 gap-2">
+            <!-- Goal Box -->
+            <div class="border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+              <div class="bg-slate-50 text-slate-500 text-[9px] font-extrabold text-center uppercase py-1">Goal</div>
+              <div class="text-center font-black text-sm py-1 bg-white text-slate-800" id="stat-goal">0</div>
+            </div>
+            <!-- Completed Box -->
+            <div class="border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+              <div class="bg-slate-50 text-slate-500 text-[9px] font-extrabold text-center uppercase py-1">Done</div>
+              <div class="text-center font-black text-sm py-1 bg-white text-emerald-600" id="stat-completed">0</div>
+            </div>
+            <!-- Left Box -->
+            <div class="border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+              <div class="bg-slate-50 text-slate-500 text-[9px] font-extrabold text-center uppercase py-1">Left</div>
+              <div class="text-center font-black text-sm py-1 bg-white text-slate-400" id="stat-left">0</div>
+            </div>
+          </div>
+
+          <!-- Custom SVG Donut Chart -->
+          <div class="relative w-28 h-28 flex items-center justify-center">
+            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f1f5f9" stroke-width="12"></circle>
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#000000" stroke-width="12"
+                stroke-dasharray="251.2" stroke-dashoffset="100" id="donut-progress-stroke" class="theme-transition">
+              </circle>
+            </svg>
+            <div class="absolute inset-0 flex flex-col justify-center items-center pointer-events-none">
+              <span class="text-[9px] text-slate-400 font-bold" id="donut-left-pct">0%</span>
+              <span class="text-xs text-black font-extrabold" id="donut-completed-pct">0%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Habit Analytics Insights Board -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div
+        class="bg-slate-900 text-slate-100 p-4 rounded-xl flex items-center justify-between border border-zinc-800 shadow-md">
+        <div class="flex items-center space-x-3">
+          <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl">
+            <i class="fa-solid fa-circle-check text-xl"></i>
+          </div>
+          <div>
+            <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Most Consistent Habit</p>
+            <p id="insight-best-habit" class="font-extrabold text-sm text-white mt-0.5">Calculating...</p>
+          </div>
+        </div>
+        <div id="insight-best-stat" class="text-xs bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-lg font-bold">-%
+        </div>
+      </div>
+
+      <div
+        class="bg-slate-900 text-slate-100 p-4 rounded-xl flex items-center justify-between border border-zinc-800 shadow-md">
+        <div class="flex items-center space-x-3">
+          <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl">
+            <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+          </div>
+          <div>
+            <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Needs Focus</p>
+            <p id="insight-worst-habit" class="font-extrabold text-sm text-white mt-0.5">Calculating...</p>
+          </div>
+        </div>
+        <div id="insight-worst-stat"
+          class="text-xs bg-amber-500/20 text-amber-400 px-3 py-1 rounded-lg font-bold font-mono">-%</div>
+      </div>
+    </div>
+
+    <!-- Row 2: Habit Logging Grid & Analysis Panel -->
+    <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
+      <div class="bg-black text-white p-3 flex flex-wrap justify-between items-center gap-2 border-b border-slate-800">
+        <div class="flex items-center space-x-3">
+          <span class="font-extrabold text-xs uppercase tracking-wider text-amber-400" id="table-accent-title">HABIT
+            PROGRESS ROADMAP</span>
+        </div>
+        <!-- Categories filter -->
+        <div class="flex items-center space-x-3 text-xs">
+          <button onclick="openAddCategoryModal()"
+            class="text-slate-200 hover:text-white flex items-center gap-1 bg-zinc-900 px-2 py-1 rounded border border-zinc-800">
+            <i class="fa-solid fa-tag"></i> Add Category
+          </button>
+          <span class="text-slate-400 hidden sm:inline">Category Filter:</span>
+          <select id="habit-category-filter" onchange="renderAll()"
+            class="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-slate-200 outline-none">
+            <option value="all">All Habits</option>
+            <!-- Dynamic Categories Injected Here -->
+          </select>
+        </div>
+      </div>
+
+      <div class="custom-scrollbar overflow-x-auto w-full">
+        <table class="w-full min-w-[1240px] border-collapse text-[11px]">
+          <thead>
+            <tr class="bg-zinc-900 text-slate-200 uppercase text-center font-bold">
+              <th class="border border-zinc-800 px-3 py-2 text-left w-60">My Habits</th>
+              <th colspan="7"
+                class="border border-zinc-800 px-1 py-1 bg-zinc-850 text-slate-300 border-r-2 border-r-slate-500">Week 1
+              </th>
+              <th colspan="7"
+                class="border border-zinc-800 px-1 py-1 bg-zinc-850 text-slate-300 border-r-2 border-r-slate-500">Week 2
+              </th>
+              <th colspan="7"
+                class="border border-zinc-800 px-1 py-1 bg-zinc-850 text-slate-300 border-r-2 border-r-slate-500">Week 3
+              </th>
+              <th colspan="7"
+                class="border border-zinc-800 px-1 py-1 bg-zinc-850 text-slate-300 border-r-2 border-r-slate-500">Week 4
+              </th>
+              <th colspan="3" class="border border-zinc-800 px-1 py-1 bg-zinc-850 text-slate-300">Week 5</th>
+              <th colspan="5" class="border border-zinc-800 px-2 py-2 w-56 bg-zinc-850">Analysis</th>
+            </tr>
+            <tr class="bg-zinc-850 text-slate-300 text-[9px] text-center font-bold">
+              <th class="border border-zinc-800 px-3 py-2 flex justify-between items-center text-left bg-zinc-900">
+                <span>Habit Name</span>
+                <button onclick="openAddHabitModal()" class="text-amber-400 hover:text-amber-300 text-xs px-1"
+                  id="add-habit-btn-theme">
+                  <i class="fa-solid fa-plus-circle"></i> Add Habit
+                </button>
+              </th>
+              <!-- Week 1 Days -->
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Su<br><span class="text-zinc-400">1</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Mo<br><span class="text-zinc-400">2</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Tu<br><span class="text-zinc-400">3</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">We<br><span class="text-zinc-400">4</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Th<br><span class="text-zinc-400">5</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Fr<br><span class="text-zinc-400">6</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800 border-r-2 border-r-slate-500">Sa<br><span
+                  class="text-zinc-400">7</span></th>
+              <!-- Week 2 Days -->
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Su<br><span class="text-zinc-400">8</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Mo<br><span class="text-zinc-400">9</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Tu<br><span class="text-zinc-400">10</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">We<br><span class="text-zinc-400">11</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Th<br><span class="text-zinc-400">12</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Fr<br><span class="text-zinc-400">13</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800 border-r-2 border-r-slate-500">Sa<br><span
+                  class="text-zinc-400">14</span></th>
+              <!-- Week 3 Days -->
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Su<br><span class="text-zinc-400">15</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Mo<br><span class="text-zinc-400">16</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Tu<br><span class="text-zinc-400">17</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">We<br><span class="text-zinc-400">18</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Th<br><span class="text-zinc-400">19</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Fr<br><span class="text-zinc-400">20</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800 border-r-2 border-r-slate-500">Sa<br><span
+                  class="text-zinc-400">21</span></th>
+              <!-- Week 4 Days -->
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Su<br><span class="text-zinc-400">22</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Mo<br><span class="text-zinc-400">23</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Tu<br><span class="text-zinc-400">24</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">We<br><span class="text-zinc-400">25</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Th<br><span class="text-zinc-400">26</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Fr<br><span class="text-zinc-400">27</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800 border-r-2 border-r-slate-500">Sa<br><span
+                  class="text-zinc-400">28</span></th>
+              <!-- Week 5 Days -->
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Su<br><span class="text-zinc-400">29</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Mo<br><span class="text-zinc-400">30</span></th>
+              <th class="border border-zinc-850 p-1 bg-zinc-800">Tu<br><span class="text-zinc-400">31</span></th>
+
+              <!-- Analysis Header -->
+              <th class="border border-zinc-850 p-1 bg-zinc-900 w-10">Goal</th>
+              <th class="border border-zinc-850 p-1 bg-zinc-900 w-10">Act</th>
+              <th class="border border-zinc-850 p-1 bg-zinc-900 w-10">Left</th>
+              <th class="border border-zinc-850 p-1 bg-zinc-900 w-20">Progress</th>
+              <th class="border border-zinc-850 p-1 bg-zinc-900 w-10">%</th>
+            </tr>
+          </thead>
+          <tbody id="habit-rows-container">
+            <!-- Dynamic Grid Content Injected Here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Row 3: Wellness Metrics & Rankings -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+      <!-- Left Panel: Overall Wellness (Mood, Sleep, and Branding) -->
+      <div
+        class="lg:col-span-8 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col justify-between">
+        <div>
+          <div
+            class="bg-black text-white py-3 px-4 flex justify-between items-center font-bold text-xs tracking-wider uppercase">
+            <span><i class="fa-solid fa-heart-pulse text-rose-500 mr-1.5"></i> Overall Wellness & Sleep Tracker</span>
+            <span class="text-slate-400 text-[10px]">Click Emoji to Cycle Mood</span>
+          </div>
+
+          <div class="custom-scrollbar overflow-x-auto w-full">
+            <table class="w-full min-w-[850px] border-collapse text-center text-xs">
+              <thead>
+                <tr id="wellness-header-row" class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                  <th class="border border-slate-200 px-4 py-2.5 w-32 text-left font-semibold">Metrics</th>
+                  <!-- Days (1 to 31) will be dynamically injected here in JS -->
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Mood Row -->
+                <tr id="mood-row-container" class="border-b border-slate-100">
+                  <td
+                    class="border-r border-slate-200 bg-slate-100 text-slate-800 text-left px-3 py-2.5 font-bold uppercase text-[10px] tracking-wider">
+                    Mood</td>
+                  <!-- Mood boxes will be dynamically injected here in JS -->
+                </tr>
+                <!-- Hours of Sleep Row -->
+                <tr id="sleep-row-container" class="border-b border-slate-100">
+                  <td
+                    class="border-r border-slate-200 bg-slate-100 text-slate-800 text-left px-3 py-2.5 font-bold uppercase text-[10px] tracking-wider">
+                    Sleep Hours</td>
+                  <!-- Sleep input boxes will be dynamically injected here in JS -->
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Branding & Legend -->
+        <div class="p-4 border-t border-slate-200 flex flex-wrap justify-between items-end gap-4 bg-slate-50">
+          <div class="flex items-center space-x-3 select-none">
+            <div class="text-slate-900 leading-none flex flex-col items-center">
+              <i class="fa-solid fa-crown text-2xl text-amber-500 animate-bounce" id="brand-accent-crown"></i>
+              <span class="text-2xl font-black tracking-widest text-slate-900 mt-1">HABIT</span>
+              <div class="w-full border-t border-slate-800 my-0.5"></div>
+              <span class="text-[9px] font-bold tracking-[0.2em] text-slate-500 uppercase">G A I N</span>
+            </div>
+          </div>
+
+          <!-- Mood Legend Details -->
+          <div class="text-xs text-slate-600 space-y-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="font-bold text-slate-700">Mood Legend:</span>
+              <span class="bg-white px-1.5 py-0.5 rounded border text-[11px]">😄 Awesome</span>
+              <span class="bg-white px-1.5 py-0.5 rounded border text-[11px]">🙂 Good</span>
+              <span class="bg-white px-1.5 py-0.5 rounded border text-[11px]">😐 Neutral</span>
+              <span class="bg-white px-1.5 py-0.5 rounded border text-[11px]">😕 Bad</span>
+              <span class="bg-white px-1.5 py-0.5 rounded border text-[11px]">😞 Awful</span>
+            </div>
+            <p class="text-[10px] text-slate-400">💡 Input sleep hours directly inside the cells (0 - 24 hours).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Top 10 Ranked Habits -->
+      <div class="lg:col-span-4 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
+        <div
+          class="bg-black text-white py-3 px-4 font-bold text-xs tracking-wider uppercase flex items-center justify-between">
+          <span><i class="fa-solid fa-fire text-amber-500 mr-1.5" id="top-habits-accent-fire"></i> Top Performing
+            Habits</span>
+          <span class="text-[10px] text-slate-400 font-semibold">By Completion Days</span>
+        </div>
+        <div class="p-4 flex-1">
+          <ol class="divide-y divide-slate-100" id="top-habits-list">
+            <!-- Top Habits Populated Dynamically -->
+          </ol>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- DEVELOPER DOCUMENTATION ACCORDION -->
+    <div class="bg-zinc-900 text-zinc-300 rounded-xl border border-zinc-800 overflow-hidden shadow-lg mt-8">
+      <button onclick="toggleDocAccordion()"
+        class="w-full bg-zinc-950 text-left px-5 py-4 font-bold text-sm tracking-wider uppercase flex justify-between items-center hover:bg-zinc-900 transition-colors">
+        <span class="flex items-center gap-2">
+          <i class="fa-solid fa-code text-amber-400" id="doc-accent-icon"></i>
+          DEVELOPER DOCUMENTATION & METADATA
+        </span>
+        <i class="fa-solid fa-chevron-down transition-transform duration-300" id="doc-chevron"></i>
+      </button>
+      <div id="doc-content-panel" class="hidden border-t border-zinc-800">
+        <div class="p-6 space-y-6 text-xs sm:text-sm leading-relaxed">
+
+          <!-- Purpose Profile -->
+          <div class="bg-zinc-850 p-4 rounded-xl border border-zinc-800">
+            <h4 class="text-amber-400 font-extrabold uppercase tracking-wider text-xs mb-2">Usage License & Purpose</h4>
+            <p class="text-zinc-200">
+              This workspace environment has been professionally customized and developed for <strong>Rakib
+                Hasan</strong>. It functions as a secure, local, responsive client-side interface dedicated to personal
+              habit optimization, wellness telemetry, productivity analysis, and deep focus session management. No
+              external tracking is initiated.
+            </p>
+          </div>
+
+          <!-- Technical Specs Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <h5 class="text-zinc-100 font-bold uppercase text-[11px] tracking-wider text-amber-500/90">Technical
+                Specifications</h5>
+              <ul class="list-disc pl-5 space-y-1 text-zinc-400">
+                <li><strong>Front-end Engine:</strong> Single-File HTML5 Architecture with Tailwind CSS Utility
+                  Framework.</li>
+                <li><strong>Theme Engine:</strong> Dynamic, state-remembered CSS Accent Token Mapping.</li>
+                <li><strong>Local Persistence:</strong> Synchronous caching in Local Storage via clean structured JSON.
+                </li>
+                <li><strong>Sound Synthesizer:</strong> Custom procedural buzzer utilizing pure Web Audio API oscillator
+                  nodes.</li>
+              </ul>
+            </div>
+            <div class="space-y-2">
+              <h5 class="text-zinc-100 font-bold uppercase text-[11px] tracking-wider text-amber-500/90">Database Schema
+                & Serialization</h5>
+              <p class="text-zinc-400">
+                The system runs entirely off client state, maintaining absolute data privacy. Structure parameters:
+              </p>
+              <pre
+                class="bg-zinc-950 p-3 rounded-lg text-[10px] text-zinc-400 overflow-x-auto border border-zinc-850 font-mono">
+{
+  "year": 2026,
+  "month": 3,
+  "habits": [ { "id": "h_ts", "name": "Text", "category": "cat_id" } ],
+  "categories": { "cat_id": { "label": "Label", "color": "bg-val", "hex": "#val" } },
+  "history": { "YYYY-M": { "habit_id": [completed_days] } },
+  "wellness": { "YYYY-M": { "moods": { "day": "mood" }, "sleeps": { "day": hours } } }
+}</pre>
+            </div>
+          </div>
+
+          <!-- Footnote -->
+          <div
+            class="text-center text-[10px] text-zinc-500 border-t border-zinc-800/80 pt-4 uppercase tracking-widest font-semibold">
+            Copyright &copy; 2026 Rakib Hasan. Designed for peak human optimization.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MASTER CONTROLLER & STATE LOGIC -->
+  <script>
+
+    // Storage configuration key
+    const STORAGE_KEY = 'habit_tracker_pro_db_v4';
+
+    // Secure English Workspace credentials database
+    const AUTH_USER_DATABASE = [
+      {
+        "username": "rakib",
+        "password": "Rakib1617nai##",
+        "fullName": "Rakib Hasan"
+      }
+    ];
+
+    // Core Default Categories Setup
+    const DEFAULT_CATEGORIES = {
+      "health": { label: "Health & Gym", color: "bg-emerald-500", border: "border-emerald-500", hex: "#10b981" },
+      "mind": { label: "Mindset & Focus", color: "bg-blue-500", border: "border-blue-500", hex: "#3b82f6" },
+      "routine": { label: "Daily Routine", color: "bg-indigo-500", border: "border-indigo-500", hex: "#6366f1" }
+    };
+
+    // Seed Data Matching March 2026 perfectly with "ChatGPT Image Jul 11, 2026, 06_12_14 PM.png"
+    const INITIAL_SEED_DATA = {
+      year: 2026,
+      month: 3, // March
+      categories: JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)),
+      habits: [
+        { id: "h1", name: "Wake up at 05:00 ⏰", category: "routine" },
+        { id: "h2", name: "Gym 💪", category: "health" },
+        { id: "h3", name: "Reading / Learning 📖", category: "mind" },
+        { id: "h4", name: "Day Planning 📆", category: "routine" },
+        { id: "h5", name: "No Gooning 💦", category: "mind" },
+        { id: "h6", name: "Project Work 🎯", category: "mind" },
+        { id: "h7", name: "No Alcohol 🍾", category: "health" },
+        { id: "h8", name: "Social Media Detox 🌿", category: "mind" },
+        { id: "h9", name: "Goal Journaling 📝", category: "routine" },
+        { id: "h10", name: "Cold Shower 🚿", category: "health" },
+        { id: "h11", name: "Learn a skill 📈", category: "mind" },
+        { id: "h12", name: "Meditate 🧘‍♀️", category: "mind" }
+      ],
+      history: {
+        "2026-3": {
+          // Match EXACT stats: Goal 372, Completed 220, Left 152
+          "h1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+          "h2": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+          "h3": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 21, 22, 23],
+          "h4": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 24],
+          "h5": [1, 2, 3, 4, 5, 6, 7],
+          "h6": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+          "h7": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+          "h8": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+          "h9": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+          "h10": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+          "h11": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+          "h12": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+        }
+      },
+      wellness: {
+        "2026-3": {
+          moods: {
+            1: "excellent", 2: "excellent", 3: "neutral", 4: "bad", 5: "bad", 6: "bad", 7: "neutral"
+          },
+          sleeps: {
+            1: 7, 2: 6, 3: 7, 4: 8, 5: 6, 6: 7, 7: 8, 8: 7, 9: 6, 10: 7, 11: 8, 12: 7, 13: 6, 14: 7, 15: 7, 16: 8
+          }
+        }
+      }
+    };
+
+    // Active State Memory
+    let dbState = {};
+
+    // Focus Timer State
+    let timerMode = 'pomodoro'; // 'pomodoro' or 'stopwatch'
+    let timerDuration = 25 * 60;
+    let timerTimeLeft = 25 * 60;
+    let timerInterval = null;
+    let timerIsRunning = false;
+
+    // Custom Modals Handling Actions
+    let modalConfirmAction = null;
+    let selectedCategoryColorKey = 'emerald';
+    let renamingHabitId = null;
+
+    // Mood configuration map
+    const moodMap = {
+      "unrated": { emoji: "⚪", color: "text-slate-300" },
+      "excellent": { emoji: "😄", color: "text-green-600" },
+      "good": { emoji: "🙂", color: "text-emerald-500" },
+      "neutral": { emoji: "😐", color: "text-amber-500" },
+      "bad": { emoji: "😕", color: "text-orange-500" },
+      "awful": { emoji: "😞", color: "text-red-500" }
+    };
+    const moodCycles = ["unrated", "excellent", "good", "neutral", "bad", "awful"];
+
+    // Color Accents mapping
+    const accentThemes = {
+      "amber": {
+        text: "text-amber-500",
+        bg: "bg-amber-500",
+        gradient: "from-amber-400 to-yellow-500",
+        donutColor: "#f59e0b",
+        hoverBg: "hover:bg-amber-400"
+      },
+      "emerald": {
+        text: "text-emerald-500",
+        bg: "bg-emerald-500",
+        gradient: "from-emerald-400 to-teal-500",
+        donutColor: "#10b981",
+        hoverBg: "hover:bg-emerald-400"
+      },
+      "purple": {
+        text: "text-purple-500",
+        bg: "bg-purple-500",
+        gradient: "from-purple-500 to-indigo-600",
+        donutColor: "#a855f7",
+        hoverBg: "hover:bg-purple-400"
+      },
+      "sky": {
+        text: "text-sky-500",
+        bg: "bg-sky-500",
+        gradient: "from-sky-400 to-blue-500",
+        donutColor: "#0ea5e9",
+        hoverBg: "hover:bg-sky-400"
+      },
+      "rose": {
+        text: "text-rose-500",
+        bg: "bg-rose-500",
+        gradient: "from-rose-500 to-red-600",
+        donutColor: "#f43f5e",
+        hoverBg: "hover:bg-rose-400"
+      }
+    };
+
+    let currentActiveTheme = 'amber';
+
+    window.onload = function () {
+      // Generate telemetry tracker
+      generateWellnessGridSkeleton();
+
+      // Set up submission handlers
+      document.getElementById('login-form').addEventListener('submit', handleLocalLogin);
+
+      // Fetch session details
+      const loggedInUser = sessionStorage.getItem('authorized_workspace_user');
+      if (loggedInUser) {
+        try {
+          initializeDashboard(JSON.parse(loggedInUser));
+        } catch (e) {
+          sessionStorage.removeItem('authorized_workspace_user');
+          showLoginScreen();
+        }
+      } else {
+        showLoginScreen();
+      }
+    };
+
+    function showLoginScreen() {
+      document.getElementById('login-overlay').classList.remove('hidden');
+      document.getElementById('main-app').classList.add('hidden');
+    }
+
+    // Generate the tabular structure dynamically
+    function generateWellnessGridSkeleton() {
+      const headerRow = document.getElementById('wellness-header-row');
+      const moodRow = document.getElementById('mood-row-container');
+      const sleepRow = document.getElementById('sleep-row-container');
+
+      for (let i = 1; i <= 31; i++) {
+        // Headers
+        const th = document.createElement('th');
+        th.className = "border border-slate-200 px-1 py-2 w-7 font-semibold text-slate-500 text-center font-mono";
+        th.innerText = i;
+        headerRow.appendChild(th);
+
+        // Mood elements
+        const moodTd = document.createElement('td');
+        moodTd.id = `mood-day-${i}`;
+        moodTd.className = "border-r border-slate-200 p-1 cursor-pointer transition hover:bg-slate-50 text-base text-center select-none";
+        moodTd.onclick = function () { cycleMood(i); };
+        moodTd.innerText = "⚪";
+        moodRow.appendChild(moodTd);
+
+        // Sleep input controllers
+        const sleepTd = document.createElement('td');
+        sleepTd.className = "border-r border-slate-200 p-0 text-center";
+
+        const input = document.createElement('input');
+        input.type = "number";
+        input.step = "0.5";
+        input.min = "0";
+        input.max = "24";
+        input.id = `sleep-day-${i}`;
+        input.className = "w-7 h-8 text-center text-[11px] bg-transparent border-0 outline-none p-0 focus:bg-amber-50 font-bold text-slate-700 font-mono";
+        input.value = "0";
+        input.onchange = function () { onSleepChange(i); };
+
+        sleepTd.appendChild(input);
+        sleepRow.appendChild(sleepTd);
+      }
+    }
+
+    // Login handling
+    function handleLocalLogin(event) {
+      event.preventDefault();
+      const usernameInput = document.getElementById('login-username').value.trim().toLowerCase();
+      const passwordInput = document.getElementById('login-password').value.trim();
+
+      const authenticatedUser = AUTH_USER_DATABASE.find(user =>
+        user.username === usernameInput && user.password === passwordInput
+      );
+
+      if (authenticatedUser) {
+        sessionStorage.setItem('authorized_workspace_user', JSON.stringify(authenticatedUser));
+
+        const overlay = document.getElementById('login-overlay');
+        overlay.classList.add('opacity-0');
+
+        setTimeout(() => {
+          overlay.classList.add('hidden');
+          initializeDashboard(authenticatedUser);
+          showToast(`Welcome, ${authenticatedUser.fullName}! Workspace authenticated successfully.`);
+        }, 300);
+      } else {
+        showToast("Invalid credentials! Please try again.", "error");
+      }
+    }
+
+    function handleLocalLogout() {
+      showConfirmModal("Logout Session", "Are you sure you want to log out of your personal authenticated tracking workspace?", () => {
+        sessionStorage.removeItem('authorized_workspace_user');
+        showToast("Workspace session terminated successfully.", "info");
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      });
+    }
+
+    function initializeDashboard(user) {
+      document.getElementById('header-user-display').innerText = user.fullName;
+      document.getElementById('login-overlay').classList.add('hidden');
+      document.getElementById('main-app').classList.remove('hidden');
+
+      loadDatabase();
+      document.getElementById('calendar-year').value = dbState.year;
+      document.getElementById('calendar-month').value = dbState.month;
+
+      if (dbState.accentTheme) {
+        currentActiveTheme = dbState.accentTheme;
+        document.getElementById('app-accent-theme').value = currentActiveTheme;
+      }
+      changeAccentColor(currentActiveTheme, false);
+      resetTimer();
+      renderAll();
+    }
+
+    function loadDatabase() {
+      const data = localStorage.getItem(STORAGE_KEY);
+      if (data) {
+        try {
+          dbState = JSON.parse(data);
+          // Ensure categories exists
+          if (!dbState.categories) {
+            dbState.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+          }
+        } catch (e) {
+          dbState = JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
+        }
+      } else {
+        dbState = JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
+        dbState.accentTheme = 'amber';
+        saveDatabase();
+      }
+    }
+
+    function saveDatabase() {
+      dbState.accentTheme = currentActiveTheme;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(dbState));
+    }
+
+    // Accordion panel toggling
+    function toggleDocAccordion() {
+      const content = document.getElementById('doc-content-panel');
+      const chevron = document.getElementById('doc-chevron');
+      const isOpen = !content.classList.contains('hidden');
+
+      if (isOpen) {
+        content.classList.add('hidden');
+        chevron.classList.remove('rotate-180');
+      } else {
+        content.classList.remove('hidden');
+        chevron.classList.add('rotate-180');
+      }
+    }
+
+    function changeAccentColor(colorKey, shouldSave = true) {
+      if (!accentThemes[colorKey]) return;
+      currentActiveTheme = colorKey;
+      const theme = accentThemes[colorKey];
+
+      document.getElementById('theme-icon-bg').className = `p-2.5 rounded-lg text-black bg-gradient-to-tr ${theme.gradient} transition-colors duration-300`;
+      document.getElementById('badge-theme-text').className = `text-[9px] bg-zinc-900 border font-bold uppercase px-2 py-0.5 rounded tracking-wide ${theme.text}`;
+      document.getElementById('brand-accent-text').className = `text-3xl font-black tracking-widest uppercase text-center ${theme.text}`;
+      document.getElementById('brand-accent-crown').className = `fa-solid fa-crown text-2xl animate-bounce ${theme.text}`;
+      document.getElementById('timer-accent-icon').className = `fa-solid fa-hourglass-start mr-1.5 animate-pulse ${theme.text}`;
+      document.getElementById('table-accent-title').className = `font-extrabold text-xs uppercase tracking-wider ${theme.text}`;
+      document.getElementById('add-habit-btn-theme').className = `${theme.text} hover:opacity-80 text-xs px-1 font-bold`;
+      document.getElementById('doc-accent-icon').className = `fa-solid fa-code ${theme.text}`;
+      document.getElementById('top-habits-accent-fire').className = `fa-solid fa-fire mr-1.5 ${theme.text}`;
+
+      document.getElementById('donut-progress-stroke').setAttribute('stroke', theme.donutColor);
+
+      if (shouldSave) {
+        saveDatabase();
+        renderAll();
+        showToast(`Visual accent switched to: ${colorKey.toUpperCase()}`, "success");
+      }
+    }
+
+    // Custom modal confirmations
+    function showConfirmModal(title, message, onConfirm) {
+      document.getElementById('modal-title').innerText = title;
+      document.getElementById('modal-message').innerText = message;
+      const modal = document.getElementById('custom-modal');
+      modal.classList.remove('hidden');
+      setTimeout(() => { modal.classList.remove('opacity-0'); }, 10);
+
+      modalConfirmAction = function () {
+        onConfirm();
+        closeConfirmModal();
+      };
+    }
+
+    function closeConfirmModal() {
+      const modal = document.getElementById('custom-modal');
+      modal.classList.add('opacity-0');
+      setTimeout(() => { modal.classList.add('hidden'); }, 300);
+      modalConfirmAction = null;
+    }
+
+    document.getElementById('modal-confirm-btn').addEventListener('click', () => {
+      if (modalConfirmAction) modalConfirmAction();
+    });
+    document.getElementById('modal-cancel-btn').addEventListener('click', closeConfirmModal);
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `flex items-center space-x-2 px-4 py-2.5 rounded-lg shadow-lg text-xs font-semibold text-white transition-all transform translate-y-2 opacity-0 duration-300 pointer-events-auto z-[999]`;
+
+      if (type === 'success') toast.className += ' bg-emerald-600';
+      else if (type === 'error') toast.className += ' bg-red-600';
+      else if (type === 'info') toast.className += ' bg-blue-600';
+      else toast.className += ' bg-zinc-800';
+
+      toast.innerHTML = `
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i>
+                <span>${message}</span>
+            `;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('opacity-0', 'translate-y-2');
+      }, 50);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => { toast.remove(); }, 300);
+      }, 3000);
+    }
+
+    function onCalendarChange() {
+      dbState.year = parseInt(document.getElementById('calendar-year').value) || new Date().getFullYear();
+      dbState.month = parseInt(document.getElementById('calendar-month').value) || 1;
+      saveDatabase();
+      renderAll();
+      showToast("Calendar view updated successfully!");
+    }
+
+    function getDaysInMonth(year, month) {
+      return new Date(year, month, 0).getDate();
+    }
+
+    function setTimerMode(mode) {
+      timerMode = mode;
+      const btnPomo = document.getElementById('btn-mode-pomo');
+      const btnSw = document.getElementById('btn-mode-sw');
+      const theme = accentThemes[currentActiveTheme];
+
+      if (timerMode === 'pomodoro') {
+        btnPomo.className = `${theme.bg} text-black text-[10px] px-2 py-0.5 rounded font-extrabold theme-transition`;
+        btnSw.className = 'bg-zinc-800 text-slate-400 text-[10px] px-2 py-0.5 rounded font-extrabold theme-transition';
+        timerDuration = 25 * 60;
+        document.getElementById('timer-status').innerText = 'Ready to Focus';
+      } else {
+        btnPomo.className = 'bg-zinc-800 text-slate-400 text-[10px] px-2 py-0.5 rounded font-extrabold theme-transition';
+        btnSw.className = `${theme.bg} text-black text-[10px] px-2 py-0.5 rounded font-extrabold theme-transition`;
+        timerDuration = 0;
+        document.getElementById('timer-status').innerText = 'Stopwatch Mode';
+      }
+      resetTimer();
+    }
+
+    function setTimerMinutes(mins) {
+      if (timerMode === 'pomodoro') {
+        timerDuration = mins * 60;
+        resetTimer();
+        showToast(`Timer designated for ${mins} minutes.`);
+      } else {
+        showToast("Cannot modify duration while in Stopwatch mode!", "error");
+      }
+    }
+
+    function toggleTimer() {
+      const playIcon = document.getElementById('icon-timer-play');
+      const toggleBtn = document.getElementById('btn-timer-toggle');
+
+      if (timerIsRunning) {
+        clearInterval(timerInterval);
+        timerIsRunning = false;
+        playIcon.className = 'fa-solid fa-play text-sm ml-1';
+        toggleBtn.classList.remove('pulse-active');
+        document.getElementById('timer-status').innerText = 'Timer Paused';
+      } else {
+        timerIsRunning = true;
+        playIcon.className = 'fa-solid fa-pause text-sm';
+        toggleBtn.classList.add('pulse-active');
+        document.getElementById('timer-status').innerText = timerMode === 'pomodoro' ? 'Stay Focused!' : 'Tracking Time';
+
+        timerInterval = setInterval(() => {
+          if (timerMode === 'pomodoro') {
+            timerTimeLeft--;
+            if (timerTimeLeft <= 0) {
+              clearInterval(timerInterval);
+              playChime();
+              timerIsRunning = false;
+              playIcon.className = 'fa-solid fa-play text-sm ml-1';
+              toggleBtn.classList.remove('pulse-active');
+              document.getElementById('timer-status').innerText = 'Session Completed!';
+              showToast("Great job! Your study session is complete. 🎉");
+            }
+          } else {
+            timerTimeLeft++;
+          }
+          updateTimerDisplay();
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      timerIsRunning = false;
+      timerTimeLeft = timerDuration;
+      const playIcon = document.getElementById('icon-timer-play');
+      const toggleBtn = document.getElementById('btn-timer-toggle');
+      playIcon.className = 'fa-solid fa-play text-sm ml-1';
+      toggleBtn.classList.remove('pulse-active');
+      updateTimerDisplay();
+      document.getElementById('timer-status').innerText = timerMode === 'pomodoro' ? 'Ready to Focus' : 'Stopwatch Mode';
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(Math.abs(timerTimeLeft) / 60);
+      const secs = Math.abs(timerTimeLeft) % 60;
+      document.getElementById('timer-display').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function playChime() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.2);
+        osc.start();
+        osc.stop(ctx.currentTime + 1.2);
+      } catch (e) { console.error("Web Audio synthesis error: ", e); }
+    }
+
+    function calculateCurrentStreak(checkedDays) {
+      if (!checkedDays || checkedDays.length === 0) return 0;
+      const sorted = [...checkedDays].sort((a, b) => b - a);
+      let streak = 0;
+      let expectedDay = sorted[0];
+
+      for (let i = 0; i < sorted.length; i++) {
+        if (sorted[i] === expectedDay) {
+          streak++;
+          expectedDay--;
+        } else {
+          break;
+        }
+      }
+      return streak;
+    }
+
+    // CATEGORY MODALS IMPLEMENTATION
+    function openAddCategoryModal() {
+      document.getElementById('input-category-name').value = '';
+      selectCategoryColor('emerald');
+      const modal = document.getElementById('modal-add-category');
+      modal.classList.remove('hidden');
+      setTimeout(() => { modal.classList.remove('opacity-0'); }, 10);
+    }
+
+    function closeAddCategoryModal() {
+      const modal = document.getElementById('modal-add-category');
+      modal.classList.add('opacity-0');
+      setTimeout(() => { modal.classList.add('hidden'); }, 300);
+    }
+
+    function selectCategoryColor(colorKey) {
+      selectedCategoryColorKey = colorKey;
+      const buttons = document.querySelectorAll('.color-dot-option');
+      buttons.forEach(btn => {
+        const activeColor = btn.getAttribute('data-color');
+        if (activeColor === colorKey) {
+          btn.classList.add('ring-4', 'ring-zinc-950', 'scale-105');
+        } else {
+          btn.classList.remove('ring-4', 'ring-zinc-950', 'scale-105');
+        }
+      });
+    }
+
+    function submitAddCategory() {
+      const name = document.getElementById('input-category-name').value.trim();
+      if (!name) {
+        showToast("Category name cannot be empty!", "error");
+        return;
+      }
+
+      const id = 'cat_' + Date.now();
+
+      // Map key colors to tailwind config
+      const colorClassMap = {
+        "emerald": { color: "bg-emerald-500", border: "border-emerald-500", hex: "#10b981" },
+        "blue": { color: "bg-blue-500", border: "border-blue-500", hex: "#3b82f6" },
+        "indigo": { color: "bg-indigo-500", border: "border-indigo-500", hex: "#6366f1" },
+        "rose": { color: "bg-rose-500", border: "border-rose-500", hex: "#f43f5e" },
+        "purple": { color: "bg-purple-500", border: "border-purple-500", hex: "#a855f7" },
+        "amber": { color: "bg-amber-500", border: "border-amber-500", hex: "#f59e0b" },
+        "orange": { color: "bg-orange-500", border: "border-orange-500", hex: "#f97316" },
+        "teal": { color: "bg-teal-500", border: "border-teal-500", hex: "#14b8a6" }
+      };
+
+      const config = colorClassMap[selectedCategoryColorKey] || colorClassMap['emerald'];
+
+      if (!dbState.categories) dbState.categories = {};
+      dbState.categories[id] = {
+        label: name,
+        color: config.color,
+        border: config.border,
+        hex: config.hex
+      };
+
+      saveDatabase();
+      closeAddCategoryModal();
+      renderAll();
+      showToast(`Category "${name}" created successfully.`);
+    }
+
+    // HABIT MODALS IMPLEMENTATION
+    function openAddHabitModal() {
+      document.getElementById('input-habit-name').value = '';
+
+      // Populate category select dropdown
+      const select = document.getElementById('select-habit-category');
+      select.innerHTML = '';
+
+      const categories = dbState.categories || DEFAULT_CATEGORIES;
+      Object.keys(categories).forEach(key => {
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.innerText = categories[key].label;
+        select.appendChild(opt);
+      });
+
+      const modal = document.getElementById('modal-add-habit');
+      modal.classList.remove('hidden');
+      setTimeout(() => { modal.classList.remove('opacity-0'); }, 10);
+    }
+
+    function closeAddHabitModal() {
+      const modal = document.getElementById('modal-add-habit');
+      modal.classList.add('opacity-0');
+      setTimeout(() => { modal.classList.add('hidden'); }, 300);
+    }
+
+    function submitAddHabit() {
+      const name = document.getElementById('input-habit-name').value.trim();
+      const category = document.getElementById('select-habit-category').value;
+
+      if (!name) {
+        showToast("Habit name cannot be empty!", "error");
+        return;
+      }
+      if (!category) {
+        showToast("Please select a valid category or create one first!", "error");
+        return;
+      }
+
+      const id = 'h_' + Date.now();
+      dbState.habits.push({ id, name, category });
+
+      saveDatabase();
+      closeAddHabitModal();
+      renderAll();
+      showToast("New habit added to roadmap successfully!");
+    }
+
+    // RENAME MODALS IMPLEMENTATION
+    function openRenameHabitModal(id) {
+      const habit = dbState.habits.find(h => h.id === id);
+      if (!habit) return;
+
+      renamingHabitId = id;
+      document.getElementById('input-rename-value').value = habit.name;
+
+      const modal = document.getElementById('modal-rename-habit');
+      modal.classList.remove('hidden');
+      setTimeout(() => { modal.classList.remove('opacity-0'); }, 10);
+    }
+
+    function closeRenameHabitModal() {
+      const modal = document.getElementById('modal-rename-habit');
+      modal.classList.add('opacity-0');
+      setTimeout(() => { modal.classList.add('hidden'); }, 300);
+      renamingHabitId = null;
+    }
+
+    function submitRenameHabit() {
+      if (!renamingHabitId) return;
+
+      const newName = document.getElementById('input-rename-value').value.trim();
+      if (!newName) {
+        showToast("Habit name cannot be empty!", "error");
+        return;
+      }
+
+      const habit = dbState.habits.find(h => h.id === renamingHabitId);
+      if (habit) {
+        habit.name = newName;
+        saveDatabase();
+      }
+
+      closeRenameHabitModal();
+      renderAll();
+      showToast("Habit renamed successfully.");
+    }
+
+
+    // CORE RENDERING IMPLEMENTATION
+    function renderAll() {
+      const year = dbState.year;
+      const month = dbState.month;
+      const monthKey = `${year}-${month}`;
+      const totalDays = getDaysInMonth(year, month);
+      const activeFilter = document.getElementById('habit-category-filter').value;
+      const activeAccent = accentThemes[currentActiveTheme];
+
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      document.getElementById('current-month-display').innerText = `• ${monthNames[month - 1]} •`;
+
+      if (!dbState.categories) dbState.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+      const categories = dbState.categories;
+
+      // Sync category filter dropdowns
+      const catFilter = document.getElementById('habit-category-filter');
+      const prevSelectedFilter = catFilter.value;
+      catFilter.innerHTML = '<option value="all">All Habits</option>';
+      Object.keys(categories).forEach(key => {
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.innerText = categories[key].label;
+        catFilter.appendChild(opt);
+      });
+      catFilter.value = prevSelectedFilter;
+
+      if (!dbState.history) dbState.history = {};
+      if (!dbState.history[monthKey]) dbState.history[monthKey] = {};
+
+      if (!dbState.wellness) dbState.wellness = {};
+      if (!dbState.wellness[monthKey]) dbState.wellness[monthKey] = { moods: {}, sleeps: {} };
+
+      const history = dbState.history[monthKey];
+      const wellness = dbState.wellness[monthKey];
+
+      const container = document.getElementById('habit-rows-container');
+      container.innerHTML = '';
+
+      let grandTotalChecked = 0;
+      let visibleHabitCount = 0;
+      let habitsMetricsList = [];
+
+      dbState.habits.forEach((habit) => {
+        if (!habit.category) habit.category = "routine";
+
+        // If habit refers to a deleted category, map to routine
+        if (!categories[habit.category]) {
+          habit.category = "routine";
+        }
+
+        if (activeFilter !== 'all' && habit.category !== activeFilter) {
+          return;
+        }
+
+        visibleHabitCount++;
+        if (!history[habit.id]) history[habit.id] = [];
+        const checkedDays = history[habit.id];
+
+        const goal = totalDays;
+        const actual = checkedDays.filter(d => d <= totalDays).length;
+        const left = Math.max(0, goal - actual);
+        const progressPct = goal > 0 ? Math.round((actual / goal) * 100) : 0;
+        const currentStreak = calculateCurrentStreak(checkedDays);
+
+        habitsMetricsList.push({
+          name: habit.name,
+          percentage: progressPct,
+          id: habit.id
+        });
+
+        grandTotalChecked += actual;
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-200';
+        const catInfo = categories[habit.category] || categories['routine'];
+
+        let tdNameHtml = `
+                    <td class="border-r border-slate-200 bg-zinc-900 text-white font-semibold px-3 py-2 flex items-center justify-between group relative">
+                        <div class="flex items-center space-x-2 max-w-[150px]">
+                            <span class="w-2 h-2 rounded-full ${catInfo.color}"></span>
+                            <span class="truncate cursor-pointer hover:text-yellow-300 font-bold" onclick="openRenameHabitModal('${habit.id}')">${habit.name}</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5 ml-2">
+                            ${currentStreak > 0 ? `<span class="text-orange-400 font-bold text-[10px] flex items-center animate-pulse" title="Current Streak"><i class="fa-solid fa-fire mr-0.5"></i>${currentStreak}</span>` : ''}
+                            <div class="hidden group-hover:flex items-center space-x-1">
+                                <button onclick="openRenameHabitModal('${habit.id}')" class="text-blue-300 hover:text-white" title="Rename"><i class="fa-solid fa-edit text-[9px]"></i></button>
+                                <button onclick="deleteHabit('${habit.id}')" class="text-red-400 hover:text-red-500" title="Delete"><i class="fa-solid fa-trash text-[9px]"></i></button>
+                            </div>
+                        </div>
+                    </td>
+                `;
+        tr.innerHTML += tdNameHtml;
+
+        for (let day = 1; day <= 31; day++) {
+          const isChecked = checkedDays.includes(day);
+          const isDayValid = day <= totalDays;
+          const borderRightClass = (day === 7 || day === 14 || day === 21 || day === 28) ? 'border-r-2 border-r-slate-400' : '';
+
+          if (isDayValid) {
+            tr.innerHTML += `
+                            <td class="border-r border-slate-200 p-1 text-center ${borderRightClass} hover:bg-slate-100 transition">
+                                <input type="checkbox" 
+                                       class="w-3.5 h-3.5 text-black border-slate-300 rounded focus:ring-0 cursor-pointer accent-black" 
+                                       ${isChecked ? 'checked' : ''} 
+                                       onclick="toggleCheck('${habit.id}', ${day})">
+                            </td>
+                        `;
+          } else {
+            tr.innerHTML += `
+                            <td class="border-r border-slate-200 p-1 bg-slate-100 text-center select-none cursor-not-allowed ${borderRightClass}">
+                                -
+                            </td>
+                        `;
+          }
+        }
+
+        tr.innerHTML += `
+                    <td class="border-r border-slate-200 bg-slate-50 px-1 text-center font-bold text-slate-600 font-mono">${goal}</td>
+                    <td class="border-r border-slate-200 bg-slate-50 px-1 text-center font-black text-black font-mono">${actual}</td>
+                    <td class="border-r border-slate-200 bg-slate-50 px-1 text-center font-bold text-slate-400 font-mono">${left}</td>
+                    <td class="border-r border-slate-200 bg-slate-50 p-1 w-20">
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div class="${activeAccent.bg} h-full" style="width: ${progressPct}%"></div>
+                        </div>
+                    </td>
+                    <td class="border-r border-slate-200 bg-slate-50 px-1 text-center font-black text-black font-mono">${progressPct}%</td>
+                `;
+
+        container.appendChild(tr);
+      });
+
+      // Handle empty habits view
+      if (visibleHabitCount === 0) {
+        container.innerHTML = `<tr><td colspan="37" class="text-center py-6 text-slate-400 text-xs font-bold">No habits registered under this category. Click 'Add Habit' to start tracking!</td></tr>`;
+      }
+
+      const totalActiveHabitsCount = dbState.habits.length;
+      const totalPossiblePoints = totalActiveHabitsCount * totalDays;
+
+      document.getElementById('stat-goal').innerText = totalPossiblePoints;
+      document.getElementById('stat-completed').innerText = grandTotalChecked;
+      document.getElementById('stat-left').innerText = Math.max(0, totalPossiblePoints - grandTotalChecked);
+
+      const compPct = totalPossiblePoints > 0 ? (grandTotalChecked / totalPossiblePoints) * 100 : 0;
+      const leftPct = Math.max(0, 100 - compPct);
+
+      document.getElementById('donut-completed-pct').innerText = `${compPct.toFixed(1)}%`;
+      document.getElementById('donut-left-pct').innerText = `${leftPct.toFixed(1)}%`;
+
+      const strokeOffset = 251.2 - (251.2 * compPct) / 100;
+      document.getElementById('donut-progress-stroke').setAttribute('stroke-dashoffset', strokeOffset);
+
+      // Insight rendering
+      if (habitsMetricsList.length > 0) {
+        habitsMetricsList.sort((a, b) => b.percentage - a.percentage);
+        document.getElementById('insight-best-habit').innerText = habitsMetricsList[0].name;
+        document.getElementById('insight-best-stat').innerText = habitsMetricsList[0].percentage + "% Rate";
+
+        habitsMetricsList.sort((a, b) => a.percentage - b.percentage);
+        document.getElementById('insight-worst-habit').innerText = habitsMetricsList[0].name;
+        document.getElementById('insight-worst-stat').innerText = habitsMetricsList[0].percentage + "% Rate";
+      } else {
+        document.getElementById('insight-best-habit').innerText = "No habits tracked";
+        document.getElementById('insight-best-stat').innerText = "0%";
+        document.getElementById('insight-worst-habit').innerText = "No habits tracked";
+        document.getElementById('insight-worst-stat').innerText = "0%";
+      }
+
+      updateDailyProgressBars(totalDays, totalActiveHabitsCount, history);
+      updateWellnessGrid(wellness, totalDays);
+      updateTopHabitsList(history, totalDays);
+    }
+
+    function toggleCheck(habitId, day) {
+      const year = dbState.year;
+      const month = dbState.month;
+      const monthKey = `${year}-${month}`;
+
+      if (!dbState.history[monthKey]) dbState.history[monthKey] = {};
+      if (!dbState.history[monthKey][habitId]) dbState.history[monthKey][habitId] = [];
+
+      const list = dbState.history[monthKey][habitId];
+      const index = list.indexOf(day);
+      if (index > -1) {
+        list.splice(index, 1);
+      } else {
+        list.push(day);
+      }
+      saveDatabase();
+      renderAll();
+    }
+
+    function updateDailyProgressBars(totalDays, totalActive, history) {
+      const container = document.getElementById('daily-progress-bars');
+      const labelsContainer = document.getElementById('daily-progress-labels');
+      const activeAccent = accentThemes[currentActiveTheme];
+
+      container.innerHTML = '';
+      labelsContainer.innerHTML = '';
+
+      for (let day = 1; day <= 31; day++) {
+        let pct = 0;
+        let isDayValid = day <= totalDays;
+
+        if (isDayValid && totalActive > 0) {
+          let checkedCount = 0;
+          dbState.habits.forEach(h => {
+            if (history[h.id] && history[h.id].includes(day)) {
+              checkedCount++;
+            }
+          });
+          pct = (checkedCount / totalActive) * 100;
+        }
+
+        const barWrapper = document.createElement('div');
+        barWrapper.className = 'flex-1 flex flex-col justify-end items-center h-full group relative px-[1px]';
+
+        const fillBar = document.createElement('div');
+        fillBar.className = isDayValid ? `${activeAccent.bg} w-full rounded-t-sm transition-all duration-300` : 'bg-transparent w-full';
+        fillBar.style.height = isDayValid ? `${pct}%` : '0%';
+
+        if (isDayValid) {
+          fillBar.className += ' cursor-pointer hover:bg-zinc-700';
+          const tooltip = document.createElement('span');
+          tooltip.className = 'absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 bg-black text-white text-[9px] py-0.5 px-1.5 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-30 shadow-md font-mono';
+          tooltip.innerText = `Day ${day}: ${Math.round(pct)}%`;
+          barWrapper.appendChild(tooltip);
+        }
+
+        barWrapper.appendChild(fillBar);
+        container.appendChild(barWrapper);
+
+        const label = document.createElement('span');
+        label.className = `flex-1 text-center font-bold text-[9px] ${isDayValid ? 'text-slate-600' : 'text-slate-300'}`;
+        label.innerText = day;
+        labelsContainer.appendChild(label);
+      }
+    }
+
+    function updateWellnessGrid(wellness, totalDays) {
+      for (let day = 1; day <= 31; day++) {
+        const isDayValid = day <= totalDays;
+        const moodTd = document.getElementById(`mood-day-${day}`);
+        const sleepInput = document.getElementById(`sleep-day-${day}`);
+
+        if (isDayValid) {
+          const userMood = wellness.moods[day] || "unrated";
+          const config = moodMap[userMood];
+          moodTd.innerText = config.emoji;
+          moodTd.className = "border-r border-slate-200 p-1 cursor-pointer text-base transition hover:bg-slate-100 text-center";
+
+          const userSleep = wellness.sleeps[day] !== undefined ? wellness.sleeps[day] : "";
+          sleepInput.value = userSleep;
+          sleepInput.disabled = false;
+          sleepInput.className = "w-7 h-8 text-center text-xs bg-transparent border-0 outline-none p-0 focus:bg-amber-50 cursor-pointer font-extrabold text-slate-800 font-mono";
+        } else {
+          moodTd.innerText = "-";
+          moodTd.className = "border-r border-slate-200 p-1 bg-slate-100 text-slate-400 text-center select-none cursor-not-allowed";
+          sleepInput.value = "";
+          sleepInput.disabled = true;
+          sleepInput.className = "w-7 h-8 text-center text-xs bg-slate-100 border-0 p-0 select-none cursor-not-allowed text-transparent font-mono";
+        }
+      }
+    }
+
+    function cycleMood(day) {
+      const year = dbState.year;
+      const month = dbState.month;
+      const monthKey = `${year}-${month}`;
+      const wellness = dbState.wellness[monthKey];
+
+      const currentMood = wellness.moods[day] || "unrated";
+      let idx = moodCycles.indexOf(currentMood);
+      idx = (idx + 1) % moodCycles.length;
+
+      const nextMood = moodCycles[idx];
+      if (nextMood === "unrated") {
+        delete wellness.moods[day];
+      } else {
+        wellness.moods[day] = nextMood;
+      }
+
+      saveDatabase();
+      updateWellnessGrid(wellness, getDaysInMonth(year, month));
+    }
+
+    function onSleepChange(day) {
+      const year = dbState.year;
+      const month = dbState.month;
+      const monthKey = `${year}-${month}`;
+      const wellness = dbState.wellness[monthKey];
+
+      const val = parseFloat(document.getElementById(`sleep-day-${day}`).value);
+      if (!isNaN(val) && val >= 0) {
+        wellness.sleeps[day] = val;
+      } else {
+        delete wellness.sleeps[day];
+      }
+      saveDatabase();
+    }
+
+    function updateTopHabitsList(history, totalDays) {
+      const listContainer = document.getElementById('top-habits-list');
+      listContainer.innerHTML = '';
+
+      const categories = dbState.categories || DEFAULT_CATEGORIES;
+
+      const ranked = dbState.habits.map(habit => {
+        const checked = history[habit.id] || [];
+        const actual = checked.filter(d => d <= totalDays).length;
+        return { habit, actual };
+      });
+
+      ranked.sort((a, b) => b.actual - a.actual);
+
+      const displayLimit = Math.min(10, ranked.length);
+      for (let i = 0; i < displayLimit; i++) {
+        const item = ranked[i];
+        const li = document.createElement('li');
+        li.className = 'py-2 flex items-center justify-between text-xs font-semibold text-slate-700';
+        const catInfo = categories[item.habit.category] || categories['routine'];
+
+        li.innerHTML = `
+                    <div class="flex items-center space-x-3 truncate">
+                        <span class="text-slate-400 font-extrabold w-5 font-mono">${i + 1}</span>
+                        <span class="w-2 h-2 rounded-full ${catInfo.color}"></span>
+                        <span class="truncate max-w-[170px]" title="${item.habit.name}">${item.habit.name}</span>
+                    </div>
+                    <span class="text-black bg-slate-100 border border-slate-200 rounded px-2 py-0.5 text-[10px] font-bold font-mono">
+                        ${item.actual} days
+                    </span>
+                `;
+        listContainer.appendChild(li);
+      }
+
+      if (ranked.length === 0) {
+        listContainer.innerHTML = '<li class="text-xs text-slate-400 py-4 text-center">No habits added yet.</li>';
+      }
+    }
+
+    function deleteHabit(id) {
+      const habit = dbState.habits.find(h => h.id === id);
+      if (!habit) return;
+
+      showConfirmModal("Delete Habit", `Are you sure you want to permanently remove "${habit.name}" from your tracker? This cannot be undone.`, () => {
+        dbState.habits = dbState.habits.filter(h => h.id !== id);
+        if (dbState.history) {
+          Object.keys(dbState.history).forEach(mKey => {
+            if (dbState.history[mKey][id]) {
+              delete dbState.history[mKey][id];
+            }
+          });
+        }
+        saveDatabase();
+        renderAll();
+        showToast("Habit deleted successfully.", "error");
+      });
+    }
+
+    function exportBackup() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dbState, null, 2));
+      const dlAnchorElem = document.createElement('a');
+      dlAnchorElem.setAttribute("href", dataStr);
+      dlAnchorElem.setAttribute("download", `habit_tracker_backup_${dbState.year}_${dbState.month}.json`);
+      dlAnchorElem.click();
+      showToast("JSON backup downloaded successfully!");
+    }
+
+    function importBackup(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (parsed && Array.isArray(parsed.habits)) {
+            dbState = parsed;
+
+            // Handle missing categories
+            if (!dbState.categories) {
+              dbState.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+            }
+
+            saveDatabase();
+            document.getElementById('calendar-year').value = dbState.year;
+            document.getElementById('calendar-month').value = dbState.month;
+
+            if (dbState.accentTheme) {
+              currentActiveTheme = dbState.accentTheme;
+              document.getElementById('app-accent-theme').value = currentActiveTheme;
+              changeAccentColor(currentActiveTheme, false);
+            }
+            renderAll();
+            showToast("Workspace database restored successfully!");
+          } else {
+            showToast("Invalid backup JSON architecture!", "error");
+          }
+        } catch (error) {
+          showToast("Failed to parse and read workspace file.", "error");
+        }
+      };
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+
+</html>
