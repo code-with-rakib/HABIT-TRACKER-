@@ -10,7 +10,7 @@
   <!-- FontAwesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Google Fonts: Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&display=swap"
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="favicon.png">
   <style>
@@ -596,7 +596,7 @@
       <div class="custom-scrollbar overflow-x-auto w-full">
         <table class="w-full min-w-[1240px] border-collapse text-[11px]">
           <thead>
-            <!-- Will be dynamically injected via JavaScript -->
+            <!-- Will be generated dynamically in JS -->
           </thead>
           <tbody id="habit-rows-container">
             <!-- Dynamic Grid Content Injected Here -->
@@ -1341,6 +1341,7 @@
       showToast("Calendar view updated successfully!");
     }
 
+    // Correct implementation to find last day of month
     function getDaysInMonth(year, month) {
       return new Date(year, month, 0).getDate();
     }
@@ -1519,7 +1520,7 @@
         "blue": { color: "bg-blue-500", border: "border-blue-500", hex: "#3b82f6" },
         "indigo": { color: "bg-indigo-500", border: "border-indigo-500", hex: "#6366f1" },
         "rose": { color: "bg-rose-500", border: "border-rose-500", hex: "#f43f5e" },
-        "purple": { color: "bg-purple-500", border: "border-purple-500", hex: "#a855f7" },
+        "purple": { color: "bg-purple-500", border: "purple-500", hex: "#a855f7" },
         "amber": { color: "bg-amber-500", border: "border-amber-500", hex: "#f59e0b" },
         "orange": { color: "bg-orange-500", border: "border-orange-500", hex: "#f97316" },
         "teal": { color: "bg-teal-500", border: "border-teal-500", hex: "#14b8a6" }
@@ -1828,7 +1829,7 @@
       const history = dbState.history[monthKey];
       const wellness = dbState.wellness[monthKey];
 
-      // --- DYNAMIC CALENDAR HEADER GENERATION LOGIC ---
+      // --- DYNAMIC CALENDAR HEADER LOGIC ---
       const tableThead = document.querySelector("#main-app table thead");
       const shortDays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
       
@@ -1858,7 +1859,7 @@
         
         theadHtml += `
           <th class="border border-zinc-850 p-1 bg-zinc-800 ${borderRightClass}">
-            ${dayLabel}<br><span class="${isDayValid ? 'text-zinc-400' : 'text-zinc-600'}">${day}</span>
+            ${dayLabel}<br><span class="${isDayValid ? 'text-zinc-400' : 'text-zinc-600 font-medium'}">${day}</span>
           </th>
         `;
       }
@@ -1873,7 +1874,7 @@
       `;
       
       tableThead.innerHTML = theadHtml;
-      // -------------------------------------------------
+      // -------------------------------------
 
       const container = document.getElementById('habit-rows-container');
       container.innerHTML = '';
@@ -1970,12 +1971,12 @@
         container.appendChild(tr);
       });
 
-      // Handle empty habits view
       if (visibleHabitCount === 0) {
         container.innerHTML = `<tr><td colspan="37" class="text-center py-6 text-slate-400 text-xs font-bold">No habits registered under this category. Click 'Add Habit' to start tracking!</td></tr>`;
       }
 
-      const totalPossiblePoints = dbState.habits.length * totalDays;
+      const totalActiveHabitsCount = dbState.habits.length;
+      const totalPossiblePoints = totalActiveHabitsCount * totalDays;
 
       document.getElementById('stat-goal').innerText = totalPossiblePoints;
       document.getElementById('stat-completed').innerText = grandTotalChecked;
@@ -1990,7 +1991,6 @@
       const strokeOffset = 251.2 - (251.2 * compPct) / 100;
       document.getElementById('donut-progress-stroke').setAttribute('stroke-dashoffset', strokeOffset);
 
-      // Insight rendering
       if (habitsMetricsList.length > 0) {
         habitsMetricsList.sort((a, b) => b.percentage - a.percentage);
         document.getElementById('insight-best-habit').innerText = habitsMetricsList[0].name;
@@ -2006,14 +2006,13 @@
         document.getElementById('insight-worst-stat').innerText = "0%";
       }
 
-      // Render Sub-Components
       renderActiveDayChecklist(history);
-      updateDailyProgressBars(totalDays, dbState.habits.length, history);
+      updateDailyProgressBars(totalDays, totalActiveHabitsCount, history);
       updateWellnessGrid(wellness, totalDays);
       updateTopHabitsList(history, totalDays);
       renderWeeklyTodos();
 
-      // Re-bind token values safely for the dynamically updated header structural selectors
+      // Ensure style triggers accurately bind onto dynamically updated table header actions
       document.getElementById('table-accent-title').className = `font-extrabold text-xs uppercase tracking-wider ${activeAccent.text}`;
       document.getElementById('add-habit-btn-theme').className = `${activeAccent.text} hover:opacity-80 text-xs px-1 font-bold`;
     }
@@ -2035,7 +2034,6 @@
           dayCompleted++;
         }
 
-        // Checklist row element
         const div = document.createElement('div');
         div.className = 'flex items-center justify-between p-2 rounded-lg border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition duration-150 bg-white shadow-xs';
 
@@ -2058,7 +2056,6 @@
 
       const dayLeft = Math.max(0, dayGoal - dayCompleted);
 
-      // Render daily stats with the customized Left transparent styling
       document.getElementById('day-stat-goal').innerText = dayGoal;
       document.getElementById('day-stat-completed').innerText = dayCompleted;
       document.getElementById('day-stat-left').innerText = dayLeft;
@@ -2270,7 +2267,6 @@
           if (parsed && Array.isArray(parsed.habits)) {
             dbState = parsed;
 
-            // Handle missing categories
             if (!dbState.categories) {
               dbState.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
             }
